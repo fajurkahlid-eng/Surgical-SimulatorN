@@ -1,0 +1,19 @@
+Babylon.js Surgical Simulator — local run
+
+1. Put mainbuild.glb, doctor.glb, and BodyHuman.glb in assets/models/ (see assets/models/README.txt).
+
+2. Serve the project root over HTTP (required for ES modules and GLB loading). Examples:
+
+   PowerShell (Node npx):
+     npx --yes serve "c:\Users\PCD\Desktop\New folder\Surgical-Traning" -p 8080
+
+   Python 3:
+     cd "c:\Users\PCD\Desktop\New folder\Surgical-Traning"
+     python -m http.server 8080
+
+3. Open in the browser:
+     http://localhost:8080/
+
+4. Click the canvas after entering the ward to use pointer lock for mouse look (browser security).
+
+Do not open index.html as a file:// URL — module scripts and models will fail.

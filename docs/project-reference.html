@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>المرجع الشامل — Surgical Training VR</title>
+  <style>
+    :root { --bg: #0a1616; --card: #134e4a; --text: #e0f2f1; --muted: #5eead4; --border: #0f766e; --accent: #2dd4bf; }
+    * { box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 1rem 1rem 3rem; line-height: 1.55; max-width: 1180px; margin-inline: auto; font-size: 0.88rem; }
+    h1 { font-size: 1.35rem; color: var(--accent); margin-bottom: 0.35rem; }
+    h2 { font-size: 1.05rem; color: var(--muted); margin: 1.75rem 0 0.5rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--border); }
+    h3 { font-size: 0.92rem; color: #99f6e4; margin: 1rem 0 0.35rem; }
+    p.lead { color: var(--muted); margin-bottom: 1rem; font-size: 0.9rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin: 0.4rem 0 1rem; }
+    th, td { border: 1px solid var(--border); padding: 0.4rem 0.5rem; text-align: right; vertical-align: top; }
+    th { background: var(--card); color: var(--muted); }
+    tr:nth-child(even) td { background: rgba(19, 78, 74, 0.22); }
+    code { background: rgba(0,0,0,0.4); padding: 0.08rem 0.3rem; border-radius: 3px; font-size: 0.9em; direction: ltr; unicode-bidi: embed; display: inline; }
+    ul { margin: 0.3rem 0 0.8rem; padding-right: 1.1rem; }
+    li { margin: 0.2rem 0; }
+    details { margin: 0.5rem 0; border: 1px solid var(--border); border-radius: 8px; padding: 0.35rem 0.65rem; background: rgba(19, 78, 74, 0.15); }
+    summary { cursor: pointer; color: var(--accent); font-weight: 600; }
+    .small { font-size: 0.76rem; color: var(--muted); }
+    @media print { body { background: #fff; color: #111; } th, td { border-color: #ccc; } }
+  </style>
+</head>
+<body>
+
+  <h1>المرجع الشامل للمشروع (Surgical Training Environment VR)</h1>
+  <p class="lead">وثيقة تفصيلية لكل جدول، حقل، مسار API، مسار واجهة، ملف محاكي، مفتاح تخزين، ووظيفة — مع <strong>سبب الوجود</strong> و<strong>المهمة</strong>. مبنية على الكود الحالي (JWT + bcrypt).</p>
+
+  <h2>1 — هيكل المشروع (المجلدات الرئيسية)</h2>
+  <table>
+    <thead><tr><th>المسار</th><th>الغرض</th></tr></thead>
+    <tbody>
+      <tr><td><code>src/</code></td><td>تطبيق React: صفحات، مكوّنات، سياقات، عميل API، ترجمة، تحقق من المدخلات</td></tr>
+      <tr><td><code>public/surgical-sim/</code></td><td>المحاكي الثابت: <code>index.html</code>، <code>styles.css</code>، <code>src/*.js</code>، أصول <code>assets/models/*.glb</code>، <code>world-layout.json</code></td></tr>
+      <tr><td><code>server/</code></td><td>Express: <code>index.js</code>، <code>auth.js</code>، <code>db.js</code>، <code>config.js</code>، <code>schema.sql</code>، <code>init-db.js</code></td></tr>
+      <tr><td><code>docs/</code></td><td>عرض تقديمي، أدلة لقطات، هذا المرجع</td></tr>
+      <tr><td><code>dist/</code></td><td>مخرجات <code>npm run build</code> (لا تُحرَّر يدوياً)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>2 — قاعدة البيانات MySQL — الجداول والحقول حرفياً</h2>
+  <p class="small">المصدر: <code>server/schema.sql</code>. اسم القاعدة الافتراضي: <code>surgical_training</code>.</p>
+
+  <h3>2.1 TRAINEES</h3>
+  <p>يخزّن <strong>كل</strong> الحسابات (متدرب ومدرّب). التمييز بالحقل <code>Role</code>.</p>
+  <table>
+    <thead><tr><th>العمود</th><th>النوع (SQL)</th><th>القيود</th><th>المهمة / لماذا موجود</th></tr></thead>
+    <tbody>
+      <tr><td><code>TraineeID</code></td><td>INT</td><td>PRIMARY KEY, AUTO_INCREMENT</td><td>معرف فريد؛ يُستخدم في الواجهة كـ <code>traineeId</code> حتى للمدرّب عند استدعاء API</td></tr>
+      <tr><td><code>Name</code></td><td>VARCHAR(100)</td><td>NOT NULL</td><td>الاسم المعروض في الواجهة</td></tr>
+      <tr><td><code>Email</code></td><td>VARCHAR(100)</td><td>UNIQUE NOT NULL</td><td>تسجيل الدخول؛ يمنع التكرار</td></tr>
+      <tr><td><code>Password</code></td><td>VARCHAR(255)</td><td>NOT NULL</td><td>تخزين مشفّر بـ <strong>bcrypt</strong>؛ الصفوف القديمة النصية تُحدَّث عند أول دخول ناجح</td></tr>
+      <tr><td><code>Progress</code></td><td>REAL</td><td>DEFAULT 0</td><td>حقل تقدّم عام (يمكن استخدامه مستقبلاً للوحة المدرب)</td></tr>
+      <tr><td><code>Specialty</code></td><td>VARCHAR(100)</td><td>NULL</td><td>التخصص من نموذج التسجيل</td></tr>
+      <tr><td><code>PriorSimulationExperience</code></td><td>VARCHAR(50)</td><td>NULL</td><td>خبرة محاكاة سابقة</td></tr>
+      <tr><td><code>UnityUnrealExperience</code></td><td>VARCHAR(50)</td><td>NULL</td><td>خبرة محركات</td></tr>
+      <tr><td><code>Role</code></td><td>VARCHAR(20)</td><td>DEFAULT 'trainee'</td><td><code>trainee</code> أو <code>instructor</code> — يحدد صلاحية لوحة المدرب وJWT</td></tr>
+    </tbody>
+  </table>
+
+  <h3>2.2 COURSES</h3>
+  <table>
+    <thead><tr><th>العمود</th><th>النوع</th><th>المهمة</th></tr></thead>
+    <tbody>
+      <tr><td><code>CourseID</code></td><td>INT PK AI</td><td>مفتاح الدورة؛ الافتراضي في التطبيق غالباً <code>1</code></td></tr>
+      <tr><td><code>CourseName</code></td><td>VARCHAR(100)</td><td>اسم عرض الدورة</td></tr>
+      <tr><td><code>CourseLevel</code></td><td>VARCHAR(50)</td><td>مستوى (مبتدئ/…)</td></tr>
+      <tr><td><code>Type</code></td><td>VARCHAR(10)</td><td>نوع مثل VR</td></tr>
+      <tr><td><code>Duration</code></td><td>INT</td><td>مدة بالدقائق (اختياري)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>2.3 SESSIONS</h3>
+  <table>
+    <thead><tr><th>العمود</th><th>النوع</th><th>المهمة</th></tr></thead>
+    <tbody>
+      <tr><td><code>SessionID</code></td><td>INT PK AI</td><td>يربط التقرير بالجلسة؛ يُمرَّر للمحاكي في URL</td></tr>
+      <tr><td><code>TraineeID</code></td><td>INT FK</td><td>→ TRAINEES؛ مالك الجلسة (يُفرض على الخادم مع JWT)</td></tr>
+      <tr><td><code>CourseID</code></td><td>INT FK</td><td>→ COURSES</td></tr>
+      <tr><td><code>Difficulty</code></td><td>VARCHAR(20)</td><td><code>beginner</code> | <code>intermediate</code> | <code>advanced</code></td></tr>
+      <tr><td><code>Date</code></td><td>DATE</td><td>يوم إنشاء الجلسة</td></tr>
+      <tr><td><code>StartTime</code></td><td>TIME</td><td>وقت البداية</td></tr>
+      <tr><td><code>EndTime</code></td><td>TIME</td><td>يُملأ عند <code>PATCH .../end</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>2.4 REPORTS</h3>
+  <table>
+    <thead><tr><th>العمود</th><th>النوع</th><th>المهمة</th></tr></thead>
+    <tbody>
+      <tr><td><code>ReportID</code></td><td>INT PK AI</td><td>مفتاح التقرير</td></tr>
+      <tr><td><code>SessionID</code></td><td>INT FK UNIQUE</td><td>جلسة واحدة → تقرير واحد كحد أقصى</td></tr>
+      <tr><td><code>TotalScore</code></td><td>REAL</td><td>درجة إجمالية (الخادم قد يعبّئها من accuracy إن لزم)</td></tr>
+      <tr><td><code>AccuracyScore</code></td><td>REAL</td><td>دقة</td></tr>
+      <tr><td><code>SpeedScore</code></td><td>REAL</td><td>سرعة إن وُجدت</td></tr>
+      <tr><td><code>StepsCompleted</code></td><td>INT</td><td>خطوات منجزة</td></tr>
+      <tr><td><code>TotalSteps</code></td><td>INT</td><td>إجمالي خطوات متوقعة (افتراض الخادم 14 إن لم يُرسل)</td></tr>
+      <tr><td><code>DurationSeconds</code></td><td>INT</td><td>مدة بالثواني</td></tr>
+      <tr><td><code>Comments</code></td><td>TEXT</td><td>نص/JSON مختصر من المحاكي</td></tr>
+    </tbody>
+  </table>
+
+  <h3>2.5 الفهارس (Indexes)</h3>
+  <ul>
+    <li><code>idx_sessions_trainee</code> على <code>SESSIONS(TraineeID)</code> — تسريع استعلامات المتدرب</li>
+    <li><code>idx_sessions_date</code> على <code>SESSIONS(Date)</code> — ترتيب زمني</li>
+    <li><code>idx_reports_session</code> على <code>REPORTS(SessionID)</code></li>
+    <li><code>idx_trainees_email</code> على <code>TRAINEES(Email)</code> — بحث تسجيل الدخول</li>
+  </ul>
+
+  <h3>2.6 البذور (INSERT الأولي في schema.sql)</h3>
+  <ul>
+    <li>دورة <code>CourseID = 1</code>: اسم عربي، نوع VR، مدة 15.</li>
+    <li>حساب مدرّب افتراضي: البريد <code>instructor@example.com</code>، كلمة المرور في الـ seed نصّ (يُفضّل تغييرها؛ أول تسجيل دخول قد يحوّلها لـ bcrypt).</li>
+  </ul>
+
+  <h2>3 — الخادم — متغيرات البيئة (<code>server/config.js</code> + <code>.env</code>)</h2>
+  <table>
+    <thead><tr><th>المتغير</th><th>الافتراضي</th><th>المهمة</th></tr></thead>
+    <tbody>
+      <tr><td><code>PORT</code></td><td>3001</td><td>منفذ Express</td></tr>
+      <tr><td><code>JWT_SECRET</code></td><td>نص تحذيري للتطوير</td><td>توقيع JWT — <strong>إلزامي تغييره في الإنتاج</strong></td></tr>
+      <tr><td><code>JWT_EXPIRES_IN</code></td><td><code>7d</code></td><td>مدة صلاحية الرمز</td></tr>
+      <tr><td><code>MYSQL_HOST</code></td><td>localhost</td><td>خادم MySQL</td></tr>
+      <tr><td><code>MYSQL_USER</code></td><td>root</td><td>مستخدم DB</td></tr>
+      <tr><td><code>MYSQL_PASSWORD</code></td><td>فارغ</td><td>كلمة مرور DB</td></tr>
+      <tr><td><code>MYSQL_DATABASE</code></td><td>surgical_training</td><td>اسم القاعدة</td></tr>
+    </tbody>
+  </table>
+
+  <h2>4 — مصادقة الخادم (<code>server/auth.js</code>)</h2>
+  <table>
+    <thead><tr><th>دالة / وسيط</th><th>المهمة</th></tr></thead>
+    <tbody>
+      <tr><td><code>hashPassword(plain)</code></td><td>bcrypt مع 12 جولة ملح</td></tr>
+      <tr><td><code>verifyPassword(plain, stored)</code></td><td>مقارنة آمنة؛ يدعم نصاً قديماً مرة واحدة</td></tr>
+      <tr><td><code>needsRehash(stored)</code></td><td>هل يجب استبدال التخزين بـ bcrypt</td></tr>
+      <tr><td><code>signToken({ traineeId, role, email })</code></td><td>إنشاء JWT؛ الحمولة: <code>sub</code> = TraineeID، <code>role</code>، <code>email</code></td></tr>
+      <tr><td><code>verifyToken(token)</code></td><td>التحقق بـ <code>jwt.verify</code></td></tr>
+      <tr><td><code>requireAuth</code></td><td>قراءة <code>Authorization: Bearer</code>؛ يملأ <code>req.auth.traineeId</code>, <code>role</code>, <code>email</code></td></tr>
+      <tr><td><code>requireInstructor</code></td><td>رفض إن <code>role !== 'instructor'</code></td></tr>
+    </tbody>
+  </table>
+
+  <h2>5 — واجهة REST — كل مسار (طلب، استجابة، أخطاء، مصادقة)</h2>
+  <table>
+    <thead><tr><th>المسار</th><th>Method</th><th>Body / Query</th><th>مصادقة</th><th>الاستجابة الناجحة</th><th>أخطاء شائعة</th></tr></thead>
+    <tbody>
+      <tr><td><code>/api/auth/register</code></td><td>POST</td><td>name, email, password, specialty?, priorSimulationExperience?, unityUnrealExperience?</td><td>لا</td><td><code>{ token, TraineeID, Name, Email, … }</code> بدون Password</td><td>400 ناقص حقول، 409 بريد موجود، 500</td></tr>
+      <tr><td><code>/api/auth/login</code></td><td>POST</td><td>email, password</td><td>لا</td><td>نفس شكل التسجيل + token</td><td>400، 401 بيانات خاطئة، 500</td></tr>
+      <tr><td><code>/api/auth/me</code></td><td>GET</td><td>—</td><td>JWT</td><td>صف مستخدم بدون Password</td><td>401</td></tr>
+      <tr><td><code>/api/auth/check-email</code></td><td>GET</td><td>query: email</td><td>لا</td><td><code>{ exists: boolean }</code></td><td>500</td></tr>
+      <tr><td><code>/api/sessions</code></td><td>POST</td><td>courseId?, difficulty?</td><td>JWT</td><td><code>{ sessionId }</code> — TraineeID من الرمز فقط</td><td>401، 500</td></tr>
+      <tr><td><code>/api/sessions/:id/end</code></td><td>PATCH</td><td>—</td><td>JWT</td><td><code>{ ok: true }</code></td><td>403 ليست جلسة المستخدم، 404، 500</td></tr>
+      <tr><td><code>/api/reports</code></td><td>POST</td><td>sessionId, totalScore?, accuracyScore?, speedScore?, stepsCompleted?, totalSteps?, durationSeconds?, comments?</td><td>JWT</td><td><code>{ ok: true }</code></td><td>403 جلسة لغير المستخدم، 404، 500</td></tr>
+      <tr><td><code>/api/reports/:traineeId</code></td><td>GET</td><td>—</td><td>JWT</td><td>مصفوفة تقارير + CourseName, Type من JOIN</td><td>403 إن لم يكن نفس المتدرب أو مدرّباً</td></tr>
+      <tr><td><code>/api/stats/:traineeId</code></td><td>GET</td><td>—</td><td>JWT</td><td><code>sessions, avgAccuracy, lastSession, chartData</code> (حتى 10 نقاط)</td><td>403</td></tr>
+      <tr><td><code>/api/admin/trainees</code></td><td>GET</td><td>—</td><td>JWT + مدرّب</td><td>قائمة Role=trainee فقط</td><td>401، 403</td></tr>
+      <tr><td><code>/api/admin/reports</code></td><td>GET</td><td>—</td><td>JWT + مدرّب</td><td>تقارير + TraineeName, TraineeEmail, CourseName</td><td>401، 403</td></tr>
+      <tr><td><code>/api/health</code></td><td>GET</td><td>—</td><td>لا</td><td><code>{ ok: true }</code></td><td>—</td></tr>
+    </tbody>
+  </table>
+  <p class="small">ملاحظة: مسارات الإدارة السابقة بـ <code>X-Trainee-Id</code> أُزيلت؛ الاعتماد على JWT فقط.</p>
+
+  <h2>6 — الواجهة الأمامية React</h2>
+
+  <h3>6.1 المسارات (<code>src/App.tsx</code>)</h3>
+  <table>
+    <thead><tr><th>Route</th><th>الحماية</th><th>المكوّن</th><th>المهمة</th></tr></thead>
+    <tbody>
+      <tr><td><code>/</code></td><td>عام</td><td>Landing</td><td>صفحة ترحيب وروابط</td></tr>
+      <tr><td><code>/overview</code></td><td>عام</td><td>Overview</td><td>نظرة عامة على المشروع</td></tr>
+      <tr><td><code>/login</code></td><td>عام</td><td>Login</td><td>دخول وتسجيل؛ يستدعي API ويحفظ token + user</td></tr>
+      <tr><td><code>/training</code></td><td>عام</td><td>Training</td><td>صعوبة + فتح المحاكي بمعاملات URL + إنشاء جلسة إن نجح API</td></tr>
+      <tr><td><code>/reports</code></td><td>عام</td><td>Reports</td><td>تقارير؛ يقرأ <code>lastSessionResult</code>؛ يزامن مع API عند وجود جلسة</td></tr>
+      <tr><td><code>/implementation-report</code></td><td>عام</td><td>ImplementationReport</td><td>تقرير تنفيذ تقني</td></tr>
+      <tr><td><code>/dashboard</code></td><td>PrivateRoute (user + token)</td><td>Dashboard</td><td>إحصائيات المتدرب من <code>/api/stats/:id</code></td></tr>
+      <tr><td><code>/instructor-dashboard</code></td><td>InstructorRoute</td><td>InstructorDashboard</td><td>متدربون + تقارير إدارية</td></tr>
+      <tr><td><code>*</code></td><td>—</td><td>Navigate → <code>/</code></td><td>أي مسار غير معروف</td></tr>
+    </tbody>
+  </table>
+
+  <h3>6.2 نوع المستخدم (<code>src/types/index.ts</code> — User)</h3>
+  <table>
+    <thead><tr><th>الحقل</th><th>المهمة</th></tr></thead>
+    <tbody>
+      <tr><td><code>traineeId</code></td><td>يطابق <code>TraineeID</code> في DB</td></tr>
+      <tr><td><code>name</code>, <code>email</code></td><td>عرض</td></tr>
+      <tr><td><code>role</code></td><td><code>trainee</code> | <code>instructor</code></td></tr>
+      <tr><td><code>specialty</code>, <code>priorSimulationExperience</code>, <code>unityUnrealExperience</code></td><td>حقول ملف اختيارية</td></tr>
+    </tbody>
+  </table>
+
+  <h3>6.3 السياقات (Context)</h3>
+  <table>
+    <thead><tr><th>الملف</th><th>المهمة</th></tr></thead>
+    <tbody>
+      <tr><td><code>LangContext</code></td><td>لغة ar/en؛ <code>document.documentElement.lang/dir</code>؛ مفتاح <code>surgical_training_lang</code></td></tr>
+      <tr><td><code>AuthContext</code></td><td>user + token؛ <code>login(u, token)</code>؛ <code>logout</code>؛ تحميل <code>/api/auth/me</code> عند وجود token؛ حدث <code>auth:unauthorized</code></td></tr>
+      <tr><td><code>DbContext</code></td><td><code>ready</code>، <code>apiAvailable</code> من <code>/api/health</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>6.4 عميل API (<code>src/api/client.ts</code>) — الدوال</h3>
+  <table>
+    <thead><tr><th>الدالة</th><th>المهمة</th></tr></thead>
+    <tbody>
+      <tr><td><code>getAccessToken</code> / <code>setAccessToken</code></td><td>قراءة/كتابة JWT في localStorage</td></tr>
+      <tr><td><code>clearAuthStorage</code></td><td>مسح الرمز + ملف المستخدم (عند 401)</td></tr>
+      <tr><td><code>register</code>, <code>login</code></td><td>تُرجع <code>{ token, user }</code></td></tr>
+      <tr><td><code>getMe</code></td><td>GET <code>/api/auth/me</code></td></tr>
+      <tr><td><code>checkEmailExists</code></td><td>قبل التسجيل</td></tr>
+      <tr><td><code>createSession(courseId, difficulty)</code></td><td>بدون إرسال traineeId في الجسم — الخادم يأخذه من JWT</td></tr>
+      <tr><td><code>endSession</code>, <code>createReport</code>, <code>getStats</code>, <code>getReports</code></td><td>محمية بالـ Bearer تلقائياً</td></tr>
+      <tr><td><code>getAdminTrainees</code>, <code>getAdminReports</code></td><td>بدون معرف في الرأس — الدور من JWT</td></tr>
+      <tr><td><code>health</code></td><td>فحص الخادم</td></tr>
+    </tbody>
+  </table>
+  <p class="small"><code>VITE_API_URL</code> في الإنتاج يحدد أصل API؛ في التطوير الطلبات النسبية تمر عبر بروكسي Vite إلى 3001.</p>
+
+  <h3>6.5 التحقق من المدخلات (<code>src/utils/validation.ts</code>)</h3>
+  <ul>
+    <li><code>validateEmail</code> — نمط بسيط؛ مطلوب غير فارغ</li>
+    <li><code>validatePassword</code> — طول أدنى 6 عند التسجيل</li>
+    <li><code>validateRequired</code> — حقول نصية مطلوبة</li>
+  </ul>
+
+  <h3>6.6 كل صفحة (<code>src/pages/*.tsx</code>)</h3>
+  <table>
+    <thead><tr><th>الملف</th><th>المهمة</th></tr></thead>
+    <tbody>
+      <tr><td><code>Landing.tsx</code></td><td>الصفحة الرئيسية؛ يستخدم <code>AppNav</code>؛ روابط للدخول والنظرة العامة والمحاكي</td></tr>
+      <tr><td><code>Overview.tsx</code></td><td>محتوى نظرة عامة على المشروع (نصوص مترجمة)</td></tr>
+      <tr><td><code>Login.tsx</code></td><td>تسجيل دخول وتسجيل حساب؛ تحقق validation؛ استدعاء API؛ <code>mapTraineeToUser</code> + token</td></tr>
+      <tr><td><code>Dashboard.tsx</code></td><td>لوحة المتدرب: <code>getStats(traineeId)</code>، بطاقات، رسم بياني، روابط سريعة</td></tr>
+      <tr><td><code>Training.tsx</code></td><td>اختيار صعوبة؛ <code>createSession</code>؛ تحويل إلى <code>/surgical-sim/index.html?…</code></td></tr>
+      <tr><td><code>Reports.tsx</code></td><td>قائمة تقارير، فلترة تاريخ، CSV، طباعة؛ معالجة <code>lastSessionResult</code>؛ <code>endSession</code> + <code>createReport</code></td></tr>
+      <tr><td><code>ImplementationReport.tsx</code></td><td>تقرير تنفيذ طويل مع Mermaid</td></tr>
+      <tr><td><code>InstructorDashboard.tsx</code></td><td>جداول المتدربين والتقارير عبر <code>getAdminTrainees</code> / <code>getAdminReports</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>6.7 مكوّنات التنقل</h3>
+  <table>
+    <thead><tr><th>المكوّن</th><th>أين يُستخدم</th><th>المهمة</th></tr></thead>
+    <tbody>
+      <tr><td><code>AppNav</code></td><td>Landing وصفحات عامة</td><td>روابط أساسية بدون لوحة متدرب كاملة</td></tr>
+      <tr><td><code>DashboardNav</code></td><td>صفحات بعد الدخول أو التقارير/التدريب</td><td>يشمل رابط لوحة المدرب إن <code>role === instructor</code>، تسجيل خروج، لغة</td></tr>
+      <tr><td><code>LangSwitcher</code></td><td>داخل الشريطين</td><td>ar / en</td></tr>
+      <tr><td><code>MermaidDiagram</code></td><td>ImplementationReport</td><td>رسوم من نصوص Mermaid</td></tr>
+    </tbody>
+  </table>
+
+  <h3>6.8 نقطة الدخول</h3>
+  <p><code>src/main.tsx</code> يثبت React على عنصر الجذر؛ <code>index.html</code> في جذر المشروع نقطة دخول Vite.</p>
+
+  <h2>7 — التخزين في المتصفح (كل المفاتيح)</h2>
+  <table>
+    <thead><tr><th>المفتاح</th><th>المحتوى</th><th>المهمة</th></tr></thead>
+    <tbody>
+      <tr><td><code>surgical_training_access_token</code></td><td>JWT</td><td>إرسال <code>Authorization: Bearer</code> — <strong>ليس</strong> كلمة مرور</td></tr>
+      <tr><td><code>surgical_training_user</code></td><td>JSON لـ User</td><td>عرض الواجهة فقط</td></tr>
+      <tr><td><code>surgical_training_lang</code></td><td><code>ar</code> | <code>en</code></td><td>لغة الواجهة</td></tr>
+      <tr><td><code>lastSessionResult</code></td><td>JSON (انظر القسم 8.3)</td><td>جسر المحاكي → صفحة التقارير؛ يُزال غالباً بعد القراءة</td></tr>
+    </tbody>
+  </table>
+
+  <h2>8 — المحاكي (<code>public/surgical-sim/</code>)</h2>
+
+  <h3>8.1 معاملات URL الشائعة</h3>
+  <table>
+    <thead><tr><th>المعامل</th><th>المهمة</th></tr></thead>
+    <tbody>
+      <tr><td><code>sessionId</code></td><td>ربط نتيجة المحاكي بجلسة DB</td></tr>
+      <tr><td><code>traineeId</code></td><td>معرف المتدرب</td></tr>
+      <tr><td><code>traineeName</code> / <code>trainee_name</code> / <code>name</code></td><td>اسم العرض؛ يفك ترميز URL</td></tr>
+      <tr><td><code>courseId</code></td><td>معرف الدورة</td></tr>
+      <tr><td><code>difficulty</code></td><td>صعوبة الجلسة</td></tr>
+      <tr><td><code>type</code></td><td>مثل VR (من صفحة التدريب)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>8.2 حالات اللعبة (<code>gameState.js</code> — GameState)</h3>
+  <table>
+    <thead><tr><th>القيمة</th><th>المعنى</th></tr></thead>
+    <tbody>
+      <tr><td><code>START</code></td><td>شاشة الاسم، Start، Start with VR</td></tr>
+      <tr><td><code>EXPLORING</code></td><td>تجول في الجناح 3D</td></tr>
+      <tr><td><code>SURGERY</code></td><td>خياطة (واجهة 2D)</td></tr>
+      <tr><td><code>LAYERED_PROCEDURE</code></td><td>إغلاق طبقي</td></tr>
+      <tr><td><code>DAMAGE_CONTROL_LAPAROTOMY</code></td><td>سيناريو ضبط الضرر</td></tr>
+      <tr><td><code>RESULTS</code></td><td>النتائج والعودة للتطبيق</td></tr>
+    </tbody>
+  </table>
+
+  <h3>8.3 <code>sessionBridge.js</code> — الحقول في الحمولة</h3>
+  <p><code>getSessionContext()</code> يُرجع: sessionId, traineeId, courseId, traineeName, difficulty, autoStart, nameLocked, exitToApp.</p>
+  <p><code>buildLastSessionPayload</code> يبني: sessionId, traineeId, totalScore, accuracyScore, speedScore, stepsCompleted, totalSteps, durationSeconds, comments (JSON مختصر).</p>
+  <p><code>persistProcedureResult</code> يكتب <code>lastSessionResult</code> إما مع <code>sessionId</code> أو <code>evaluationOnly: true</code> إن لا توجد جلسة DB.</p>
+
+  <h3>8.4 <code>WORLD_CONFIG</code> (<code>world.js</code>) — أهم المفاتيح</h3>
+  <p class="small">ضبط المشهد: مسارات GLB، ارتفاع العين، موضع السرير/المريض، نقطة التفاعل F، نصف قطر القرب، سرعة المشي والعدو، تطبيع حجم المريض، إلخ. يمكن دمج <code>world-layout.json</code> فوق القيم الافتراضية.</p>
+  <table>
+    <thead><tr><th>مفتاح / مجموعة</th><th>المهمة</th></tr></thead>
+    <tbody>
+      <tr><td><code>files.building/bed/doctor/patient</code></td><td>أسماء ملفات GLB</td></tr>
+      <tr><td><code>useMeshCollisions</code></td><td>تصادم الكاميرا مع الشبكات</td></tr>
+      <tr><td><code>eyeHeight</code></td><td>ارتفاع عين اللاعب</td></tr>
+      <tr><td><code>patientPosition</code>, <code>patientOnBedLocal</code>, <code>bedRotationY</code>, <code>bedScale</code></td><td>وضع السرير والمريض</td></tr>
+      <tr><td><code>spawnOffsetFromPatient</code>, <code>spawnRotation</code></td><td>نقطة بداية الكاميرا</td></tr>
+      <tr><td><code>interactionPromptWorldPosition</code> / <code>interactionPromptOffsetFromPatient</code>, <code>interactionRadius</code></td><td>تفاعل F بجانب السرير</td></tr>
+      <tr><td><code>playerWalkSpeed</code>, <code>playerSprintMultiplier</code>, …</td><td>حركة اللاعب</td></tr>
+      <tr><td><code>patientAutoNormalize</code>, <code>patientTargetMaxDimensionMeters</code>, <code>patientScale</code></td><td>قياس واقعي للمريض</td></tr>
+      <tr><td><code>doctorParentedToCamera</code>, <code>doctorLocalPosition</code></td><td>نموذج الطبيب (عادة مخفي لأول شخص)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>8.5 <code>world-layout.json</code></h3>
+  <p>نسخة قابلة للتعديل من مواضع التفاعل والـ spawn دون إعادة بناء الكود بالكامل؛ الحقول تطابق جزءاً من <code>WORLD_CONFIG</code>.</p>
+
+  <h3>8.6 ملفات <code>public/surgical-sim/src/*.js</code></h3>
+  <table>
+    <thead><tr><th>الملف</th><th>المهمة</th></tr></thead>
+    <tbody>
+      <tr><td><code>main.js</code></td><td>نقطة الدخول: محرك، حالات، واجهات، ربط النتائج</td></tr>
+      <tr><td><code>world.js</code></td><td>تحميل المشهد والـ GLB</td></tr>
+      <tr><td><code>gameState.js</code></td><td>حالات ومدير الحالة</td></tr>
+      <tr><td><code>playerController.js</code></td><td>تحكم الكاميرا أثناء التجول</td></tr>
+      <tr><td><code>patientInteraction.js</code></td><td>قرب المريض وبدء الإجراء</td></tr>
+      <tr><td><code>sessionBridge.js</code></td><td>جسر URL وlocalStorage مع React</td></tr>
+      <tr><td><code>suturingUI.js</code></td><td>واجهة خياطة 2D</td></tr>
+      <tr><td><code>layeredClosureUI.js</code></td><td>إغلاق طبقي</td></tr>
+      <tr><td><code>damageControlLaparotomyUI.js</code></td><td>ضبط ضرر + مناطق تفاعل</td></tr>
+      <tr><td><code>scoring.js</code></td><td>حساب الدرجات والملاحظات</td></tr>
+      <tr><td><code>resultsUI.js</code></td><td>عرض النتائج ونص التقييم</td></tr>
+      <tr><td><code>webxrEntry.js</code></td><td>دخول VR</td></tr>
+      <tr><td><code>heartMonitorHud.js</code></td><td>واجهة نبض</td></tr>
+      <tr><td><code>operatingRoomAudio.js</code></td><td>صوت الغرفة</td></tr>
+      <tr><td><code>placementEditor.js</code></td><td>محرر مواضع (تطوير)</td></tr>
+      <tr><td><code>worldLayout.js</code></td><td>دمج JSON مع الإعدادات</td></tr>
+    </tbody>
+  </table>
+
+  <h2>9 — الحزم والأوامر</h2>
+  <h3>الجذر (<code>package.json</code>)</h3>
+  <ul>
+    <li>اعتماديات: React, react-dom, react-router-dom, mermaid, three (قد يكون إرثاً؛ المحاكي Babylon من CDN)</li>
+    <li><code>npm run dev</code> — API + Vite معاً</li>
+    <li><code>npm run build</code> / <code>typecheck</code> / <code>preview</code></li>
+  </ul>
+  <h3>الخادم (<code>server/package.json</code>)</h3>
+  <ul>
+    <li>express, cors, dotenv, mysql2, bcrypt, jsonwebtoken</li>
+    <li><code>npm run init-db</code> — تنفيذ <code>schema.sql</code></li>
+  </ul>
+
+  <h2>10 — تدفقات مختصرة</h2>
+  <ol>
+    <li><strong>تسجيل دخول:</strong> POST login → token + user → localStorage → طلبات لاحقة بـ Bearer.</li>
+    <li><strong>تدريب:</strong> POST sessions → فتح محاكي بمعاملات → إنهاء إجراء → lastSessionResult → reports → PATCH end + POST report إن وُجد sessionId.</li>
+    <li><strong>مدرّب:</strong> JWT بدور instructor → GET admin/*.</li>
+  </ol>
+
+  <h2>11 — ملفات توثيق أخرى في <code>docs/</code></h2>
+  <ul>
+    <li><code>presentation.html</code> — عرض تقديمي</li>
+    <li><code>ui-pages-guide.html</code> — دليل لقطات الشاشة</li>
+    <li><code>screenshots/README.txt</code> — أسماء الملفات</li>
+  </ul>
+
+  <p class="small" style="margin-top:2rem;">آخر مراجعة شاملة للكود: مرجع حي — عند إضافة ميزات جدّد الجداول والمسارات هنا.</p>
+</body>
+</html>

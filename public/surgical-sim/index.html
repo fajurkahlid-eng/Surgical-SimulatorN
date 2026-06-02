@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Surgical Training Simulator</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.babylonjs.com/babylon.js"></script>
+  <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+</head>
+<body>
+  <canvas id="renderCanvas" touch-action="none"></canvas>
+
+  <!-- Vitals: only visible during suturing / layered / damage-control procedures (see heartMonitorHud + main.js) -->
+  <div id="heart-monitor-hud" class="heart-monitor-hud heart-monitor-hud--procedure-dock hidden" data-hr-zone="green" aria-hidden="true">
+    <div class="heart-monitor-hud__chassis">
+      <div class="heart-monitor-hud__bezel-top" aria-hidden="true">
+        <span class="heart-monitor-hud__led"></span>
+        <span class="heart-monitor-hud__bezel-title">Patient monitor</span>
+        <span class="heart-monitor-hud__alarm-led" title=""></span>
+      </div>
+      <div class="heart-monitor-hud__screen">
+        <div class="heart-monitor-hud__screen-glare" aria-hidden="true"></div>
+        <div class="heart-monitor-hud__channel">
+          <span class="heart-monitor-hud__channel-lbl">II</span>
+          <span class="heart-monitor-hud__channel-name">ECG</span>
+        </div>
+        <div class="heart-monitor-hud__readout">
+          <span class="heart-monitor-hud__readout-label">HR</span>
+          <span id="heart-monitor-bpm" class="heart-monitor-hud__digits">65</span>
+          <span class="heart-monitor-hud__digits-suffix">bpm</span>
+        </div>
+        <div id="heart-monitor-strip" class="heart-monitor-strip">
+          <svg class="heart-monitor-strip__svg" viewBox="0 0 200 26" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <clipPath id="heart-monitor-ecg-clip">
+                <rect x="0" y="0" width="200" height="26" />
+              </clipPath>
+              <pattern id="heart-monitor-ecg-grid" width="8" height="8" patternUnits="userSpaceOnUse">
+                <path d="M8 0H0V8" fill="none" stroke="#0d2820" stroke-width="0.15" opacity="0.9" />
+              </pattern>
+            </defs>
+            <rect width="200" height="26" fill="#020805" />
+            <rect width="200" height="26" fill="url(#heart-monitor-ecg-grid)" opacity="0.35" />
+            <line
+              class="heart-monitor-strip__grid-major"
+              x1="0"
+              y1="13"
+              x2="200"
+              y2="13"
+              stroke="#1a3d30"
+              stroke-width="0.35"
+            />
+            <g clip-path="url(#heart-monitor-ecg-clip)">
+              <g id="heart-monitor-ecg-scroll" transform="translate(0,0)">
+                <g class="heart-monitor-strip__pulse-group">
+                  <polyline
+                    class="heart-monitor-strip__trace"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.35"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    points="0,13 18,13 22,12 26,13 34,13 38,4 42,21 46,7 50,15 58,13 72,13 76,12 80,13 88,13 92,4 96,21 100,7 104,15 112,13 126,13 130,12 134,13 142,13 146,4 150,21 154,7 158,15 166,13 180,13 184,12 188,13 200,13"
+                  />
+                  <polyline
+                    class="heart-monitor-strip__trace"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.35"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    transform="translate(200,0)"
+                    points="0,13 18,13 22,12 26,13 34,13 38,4 42,21 46,7 50,15 58,13 72,13 76,12 80,13 88,13 92,4 96,21 100,7 104,15 112,13 126,13 130,12 134,13 142,13 146,4 150,21 154,7 158,15 166,13 180,13 184,12 188,13 200,13"
+                  />
+                  <polyline
+                    class="heart-monitor-strip__trace"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.35"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    transform="translate(400,0)"
+                    points="0,13 18,13 22,12 26,13 34,13 38,4 42,21 46,7 50,15 58,13 72,13 76,12 80,13 88,13 92,4 96,21 100,7 104,15 112,13 126,13 130,12 134,13 142,13 146,4 150,21 154,7 158,15 166,13 180,13 184,12 188,13 200,13"
+                  />
+                </g>
+              </g>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="start-screen" class="screen overlay">
+    <div class="panel start-panel">
+      <h1>Surgical Training Simulator</h1>
+      <p class="clinical-tag">Clinical skills laboratory</p>
+      <p id="start-screen-instruction" class="muted">Enter your name to begin ward orientation and bedside procedures.</p>
+      <label class="field">
+        <span>Trainee name</span>
+        <input type="text" id="trainee-name" maxlength="48" placeholder="Your name" autocomplete="name" />
+      </label>
+      <div class="actions actions-start">
+        <button type="button" id="btn-start" class="primary">Start</button>
+        <button type="button" id="btn-start-vr" class="secondary" disabled title="Available when a VR headset is connected and the browser supports WebXR">
+          Start with VR
+        </button>
+      </div>
+      <p id="start-screen-hint" class="hint">Press Enter in the name field or click Start</p>
+    </div>
+  </div>
+
+  <div id="hud-explore" class="hud explore-hud hidden">
+    <div id="coord-dock" class="coord-dock hidden" aria-live="polite">
+      <div class="coord-mini-label">Position · camera</div>
+      <pre id="coord-mini" class="coord-mini"></pre>
+      <div id="coord-reader" class="coord-reader hidden">
+        <div class="coord-reader-head">
+          <strong>Full pose · patient anchor</strong>
+          <span class="muted tiny"><kbd>C</kbd> hide</span>
+        </div>
+        <pre id="coord-reader-text" class="coord-pre"></pre>
+        <pre id="coord-patient-text" class="coord-pre muted small"></pre>
+        <button type="button" id="coord-copy" class="coord-copy-btn">Copy layout</button>
+      </div>
+    </div>
+    <div class="hud-row hud-row-topright">
+      <span id="hud-name"></span>
+    </div>
+    <div id="interaction-prompt" class="interaction-prompt hidden">Press <kbd>F</kbd> — pre-procedure checklist, then procedure options</div>
+    <p class="hud-hint muted hud-hint-bottom">Click the 3D view · WASD · <kbd>Shift</kbd> brisk · <kbd>F</kbd> checklist + procedures · <kbd>C</kbd> coords · <kbd>P</kbd> placement</p>
+  </div>
+
+  <div id="placement-editor-overlay" class="placement-editor-overlay hidden" aria-hidden="true">
+    <div class="placement-editor-panel panel">
+      <header class="placement-editor-head">
+        <h2>Scene placement</h2>
+        <p class="muted small">Edit values → <strong>Apply</strong> updates the 3D scene. <strong>Save</strong> downloads <code>world-layout.json</code> — replace the project file and refresh to load defaults from disk.</p>
+        <p id="placement-pick-hint" class="muted small">Click the 3D view (not this panel) to show the picked mesh name.</p>
+      </header>
+      <div class="placement-editor-grid">
+        <fieldset>
+          <legend>Bed anchor (world)</legend>
+          <label class="field"><span>X</span><input type="number" step="0.01" name="px" /></label>
+          <label class="field"><span>Y</span><input type="number" step="0.01" name="py" /></label>
+          <label class="field"><span>Z</span><input type="number" step="0.01" name="pz" /></label>
+          <label class="field"><span>Bed rot Y (rad)</span><input type="number" step="0.01" name="bedRotY" /></label>
+          <label class="field"><span>Bed scale</span><input type="number" step="0.01" name="bedScale" /></label>
+        </fieldset>
+        <fieldset>
+          <legend>Patient on bed (local)</legend>
+          <label class="field"><span>X</span><input type="number" step="0.01" name="plx" /></label>
+          <label class="field"><span>Y</span><input type="number" step="0.01" name="ply" /></label>
+          <label class="field"><span>Z</span><input type="number" step="0.01" name="plz" /></label>
+          <label class="field"><span>Patient rot Y</span><input type="number" step="0.01" name="patRotY" /></label>
+          <label class="field"><span>Y fine tune</span><input type="number" step="0.001" name="patYFine" /></label>
+          <label class="field"><span>Mattress clearance</span><input type="number" step="0.001" name="bedClear" /></label>
+        </fieldset>
+        <fieldset>
+          <legend>Spawn &amp; camera</legend>
+          <label class="field"><span>Spawn ΔX</span><input type="number" step="0.001" name="spx" /></label>
+          <label class="field"><span>Spawn ΔZ</span><input type="number" step="0.001" name="spz" /></label>
+          <label class="field"><span>Rot X</span><input type="number" step="0.001" name="srx" /></label>
+          <label class="field"><span>Rot Y</span><input type="number" step="0.001" name="sry" /></label>
+          <label class="field"><span>Rot Z</span><input type="number" step="0.001" name="srz" /></label>
+        </fieldset>
+        <fieldset>
+          <legend>Other</legend>
+          <label class="field"><span>Building scale</span><input type="number" step="0.01" name="buildingScale" /></label>
+          <label class="field"><span>Prompt ΔX</span><input type="number" step="0.01" name="ipx" /></label>
+          <label class="field"><span>Prompt ΔY</span><input type="number" step="0.01" name="ipy" /></label>
+          <label class="field"><span>Prompt ΔZ</span><input type="number" step="0.01" name="ipz" /></label>
+          <label class="field"><span>Interaction radius</span><input type="number" step="0.1" name="ixRadius" /></label>
+        </fieldset>
+      </div>
+      <div class="placement-editor-actions actions">
+        <button type="button" id="placement-editor-apply" class="primary">Apply to scene</button>
+        <button type="button" id="placement-editor-save" class="secondary">Save JSON file</button>
+        <button type="button" id="placement-editor-close" class="secondary">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="pre-op-overlay" class="screen overlay hidden" aria-hidden="true">
+    <div class="panel pre-op-panel">
+      <h2>Pre-procedure checklist</h2>
+      <p class="muted small">Complete these three steps as in real practice before selecting a training module.</p>
+      <ol class="pre-op-task-list">
+        <li class="pre-op-task" data-task-index="0">
+          <div class="pre-op-task__body">
+            <strong class="pre-op-task__title">Surgical time-out</strong>
+            <span class="pre-op-task__desc">Confirm patient identity, planned procedure, and operative site (simulated verbal confirmation).</span>
+          </div>
+          <button type="button" class="secondary pre-op-task-btn">Mark complete</button>
+        </li>
+        <li class="pre-op-task" data-task-index="1">
+          <div class="pre-op-task__body">
+            <strong class="pre-op-task__title">Hand antisepsis</strong>
+            <span class="pre-op-task__desc">Perform surgical hand hygiene before approaching the sterile field.</span>
+          </div>
+          <button type="button" class="secondary pre-op-task-btn">Mark complete</button>
+        </li>
+        <li class="pre-op-task" data-task-index="2">
+          <div class="pre-op-task__body">
+            <strong class="pre-op-task__title">Sterile readiness</strong>
+            <span class="pre-op-task__desc">Confirm sterile gloves and that instruments / tray are ready for the procedure.</span>
+          </div>
+          <button type="button" class="secondary pre-op-task-btn">Mark complete</button>
+        </li>
+      </ol>
+      <div class="pre-op-actions">
+        <button type="button" id="pre-op-continue" class="primary" disabled>Continue to procedures</button>
+      </div>
+      <p class="hint small muted"><kbd>ESC</kbd> to cancel</p>
+    </div>
+  </div>
+
+  <div id="surgery-choice-overlay" class="screen overlay hidden" aria-hidden="true">
+    <div class="panel surgery-choice-panel">
+      <h2>Bedside procedures</h2>
+      <p class="muted small">Select a training module. Time-out and technique rules apply per station.</p>
+      <div class="surgery-choice-actions surgery-choice-actions--triple">
+        <button type="button" id="btn-choice-suture" class="primary">I — Complex laceration suturing</button>
+        <button type="button" id="btn-choice-layered" class="secondary">II — Multilayer wound reconstruction</button>
+        <button type="button" id="btn-choice-damage" class="secondary">III — Damage control laparotomy</button>
+      </div>
+      <p class="hint small muted"><kbd>ESC</kbd> to close</p>
+    </div>
+  </div>
+
+  <div id="layered-procedure-overlay" class="screen overlay hidden" aria-hidden="true">
+    <div class="layered-shell">
+      <header class="suturing-header">
+        <div>
+          <h2 id="layered-procedure-title">Multilayer wound reconstruction</h2>
+          <p id="layered-procedure-step" class="muted small"></p>
+        </div>
+        <div class="stitch-counter" id="layered-procedure-phase">Phase 1 of 6</div>
+      </header>
+      <div id="layered-procedure-workspace"></div>
+      <p id="layered-procedure-feedback" class="mistake-feedback"></p>
+      <div id="layered-procedure-footer"></div>
+    </div>
+  </div>
+
+  <div id="damage-control-overlay" class="screen overlay hidden" aria-hidden="true">
+    <div class="layered-shell dc-shell">
+      <header class="suturing-header">
+        <div>
+          <h2 id="damage-control-title">Damage control laparotomy</h2>
+          <p id="damage-control-step" class="muted small"></p>
+        </div>
+        <div class="stitch-counter" id="damage-control-phase">Phase 1 of 12</div>
+      </header>
+      <div id="damage-control-workspace"></div>
+      <p id="damage-control-feedback" class="mistake-feedback"></p>
+      <div id="damage-control-footer"></div>
+    </div>
+  </div>
+
+  <div id="suturing-overlay" class="screen overlay hidden" aria-hidden="true">
+    <div class="suturing-shell">
+      <header class="suturing-header">
+        <div>
+          <h2>Complex laceration — dermal closure</h2>
+          <p id="suture-instructions" class="muted small"></p>
+          <p id="suture-precision-hint" class="suture-precision-hint muted small" aria-live="polite"></p>
+        </div>
+        <div class="stitch-counter" id="stitch-counter">Stitch 1 / 8</div>
+      </header>
+
+      <div id="final-review-banner" class="final-review-banner hidden" role="status" aria-live="polite"></div>
+
+      <div class="wound-wrap">
+        <!-- Layers: base → persistent SVG sutures → markers → active preview -->
+        <div
+          id="wound-panel"
+          class="wound-panel wound-panel--laceration"
+          style="--wound-gap-pct: 14; --wound-edge-pull: 0"
+        >
+          <div class="wound-layer wound-layer-base">
+            <div class="wound-flesh wound-flesh--laceration"></div>
+            <div class="wound-edge-pull wound-edge-pull-left" aria-hidden="true"></div>
+            <div class="wound-edge-pull wound-edge-pull-right" aria-hidden="true"></div>
+            <div id="wound-gash" class="wound-gash wound-gash--laceration"></div>
+            <div id="zone-left" class="wound-zone zone-left"></div>
+            <div id="zone-right" class="wound-zone zone-right"></div>
+          </div>
+          <svg
+            id="wound-stitches-svg"
+            class="wound-layer wound-layer-stitches"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          ></svg>
+          <div id="stitch-markers" class="wound-layer wound-layer-markers"></div>
+          <div class="wound-layer wound-layer-active">
+            <div id="thread-line" class="thread-line" aria-hidden="true"></div>
+            <div id="needle" class="needle" aria-hidden="true"></div>
+          </div>
+        </div>
+        <p id="mistake-feedback" class="mistake-feedback" role="status"></p>
+      </div>
+
+      <div id="tension-block" class="tension-block">
+        <label class="field">
+          <span>Thread tension</span>
+          <input type="range" id="tension-slider" min="0" max="100" value="50" />
+        </label>
+        <div class="tension-readout"><span id="tension-value">50</span>% · ideal band <strong>48–52%</strong> · seat knot with <kbd>N</kbd></div>
+        <button type="button" id="btn-confirm-tension" class="secondary" disabled>Seat knot / confirm (N)</button>
+      </div>
+
+      <div id="suturing-actions" class="suturing-actions">
+        <button type="button" id="btn-finish-procedure" class="primary" disabled>Finish procedure</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="results-screen" class="screen overlay hidden" aria-hidden="true">
+    <div class="panel results-panel">
+      <h2 id="results-title">Evaluation</h2>
+      <div id="results-body" class="results-body"></div>
+      <div class="actions results-actions">
+        <button type="button" id="btn-go-reports" class="primary hidden">Go to evaluation</button>
+        <button type="button" id="btn-go-app-home" class="secondary hidden" aria-hidden="true">Back to app home</button>
+        <button type="button" id="btn-return-ward" class="primary">Return to ward</button>
+        <button type="button" id="btn-restart-app" class="secondary">Restart from name screen</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

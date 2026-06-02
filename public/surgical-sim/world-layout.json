@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "patientPosition": { "x": 3.3, "y": 0.26, "z": 2.2 },
+  "bedRotationY": 0,
+  "bedScale": 1,
+  "patientRotationY": 0,
+  "patientOnBedLocal": { "x": -3.3, "y": 0, "z": -2.2 },
+  "patientOnBedYOffsetFineTune": 0,
+  "patientBedClearance": 0.04,
+  "spawnOffsetFromPatient": { "x": -1.915, "z": 2.088 },
+  "spawnRotation": { "x": 0.328, "y": 2.533, "z": 0 },
+  "buildingScale": 1,
+  "interactionPromptOffsetFromPatient": { "x": -3.3, "y": 0, "z": -2.2 },
+  "interactionPromptWorldPosition": { "x": 1.542, "y": 1.65, "z": 0.736 },
+  "interactionRadius": 13,
+  "heartMonitorWorldPosition": { "x": 0.245, "y": 1.65, "z": -1.118 },
+  "heartMonitorUseWorldProjection": false
+}

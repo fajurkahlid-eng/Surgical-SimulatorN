@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+@theme {
+  --font-ar: "Noto Kufi Arabic", "Segoe UI", system-ui, sans-serif;
+  --color-brand: #0d9488;
+  --color-brand-dark: #0f766e;
+  --color-surface: #f0fdfa;
+  --color-surface-elevated: #ccfbf1;
+  --color-ink: #134e4a;
+  --color-ink-muted: #5eead4;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-ar);
+  direction: inherit;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+.container-page {
+  width: 100%;
+  max-width: 72rem;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+
+
+.app-nav-bar {
+  min-height: 3.5rem;
+  height: 3.5rem;
+  flex-wrap: nowrap;
+}
+
+.app-nav-bar .nav-links {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.app-nav-bar .nav-links::-webkit-scrollbar {
+  height: 4px;
+}
+
+.app-nav-bar .nav-links::-webkit-scrollbar-track {
+  background: rgba(20, 184, 166, 0.15);
+  border-radius: 2px;
+}
+
+.app-nav-bar .nav-links::-webkit-scrollbar-thumb {
+  background: rgba(20, 184, 166, 0.4);
+  border-radius: 2px;
+}
+
+@media (min-width: 640px) {
+  .container-page {
+    padding-inline: 1.5rem;
+  }
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+a:focus:not(:focus-visible),
+button:focus:not(:focus-visible) {
+  outline: none;
+}
+
+@media (max-width: 640px) {
+  .container-page {
+    padding-inline: 0.75rem;
+  }
+}
+
+@keyframes nav-progress {
+  from { transform: scaleX(0); transform-origin: left; }
+  to { transform: scaleX(1); transform-origin: left; }
+}
+
+.fixed.animate-nav-progress {
+  animation: nav-progress 0.28s ease-out forwards;
+}
+
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff; color: #111; }
+}

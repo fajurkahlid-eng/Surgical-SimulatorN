@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Surgical Training VR — Presentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --teal-950: #0d1f1f;
+      --teal-900: #134e4a;
+      --teal-800: #115e59;
+      --teal-700: #0f766e;
+      --teal-500: #14b8a6;
+      --teal-400: #2dd4bf;
+      --teal-300: #5eead4;
+      --teal-200: #99f6e4;
+      --teal-100: #ccfbf1;
+      --gradient-teal: linear-gradient(135deg, #0f766e 0%, #14b8a6 50%, #2dd4bf 100%);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--teal-950); color: var(--teal-100); display: flex; align-items: center; justify-content: center; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    .slide strong { font-weight: 800; color: var(--teal-100); }
+    .deck { width: 1440px; height: 810px; max-width: 100vw; max-height: 56.25vw; background: var(--teal-950); border-radius: 12px; box-shadow: 0 30px 90px rgba(0,0,0,0.5), 0 0 0 1px rgba(45, 212, 191, 0.1); overflow: hidden; position: relative; }
+    .slide { display: flex; flex-direction: column; position: absolute; inset: 0; visibility: hidden; pointer-events: none; background: linear-gradient(180deg, var(--teal-950) 0%, #0a1919 100%); }
+    .slide.active { visibility: visible; pointer-events: auto; animation: fadeIn 0.35s ease; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .slide-topbar { height: 6px; background: var(--gradient-teal); }
+    .slide-body { flex: 1; padding: 2rem 3.25rem; display: flex; flex-direction: column; overflow-y: auto; }
+    .slide h1 { font-size: 1.95rem; font-weight: 800; color: var(--teal-300); margin-bottom: 1.1rem; letter-spacing: -0.02em; line-height: 1.2; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+    .slide h2 { font-size: 0.9rem; font-weight: 700; color: var(--teal-400); margin: 1rem 0 0.4rem; text-transform: uppercase; letter-spacing: 0.1em; }
+    .slide p, .slide li { font-size: 1rem; line-height: 1.7; margin: 0.25rem 0; color: var(--teal-200); font-weight: 600; }
+    .slide ul { margin-left: 1.25rem; list-style: none; }
+    .slide ul li { padding: 0.15rem 0; }
+    .slide ul li::before { content: "❖ "; color: var(--teal-400); font-weight: 800; }
+    .outline-list { margin-left: 0; }
+    .outline-list li { display: flex; align-items: center; gap: 1rem; padding: 0.55rem 0; border-bottom: 1px solid var(--teal-800); font-weight: 600; }
+    .outline-list li:last-child { border-bottom: none; }
+    .outline-list li::before { content: none; }
+    .outline-list .num { width: 28px; height: 28px; background: var(--gradient-teal); color: var(--teal-950); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; flex-shrink: 0; }
+    .slide .bullet { padding-left: 0.5rem; }
+    .slide code { background: rgba(15, 118, 110, 0.4); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.88em; }
+    .slide table { width: 100%; border-collapse: collapse; margin: 0.6rem 0; font-size: 0.92rem; font-weight: 600; border: 1px solid var(--teal-700); border-radius: 10px; overflow: hidden; }
+    .slide th, .slide td { padding: 0.6rem 0.9rem; text-align: left; border-bottom: 1px solid var(--teal-700); }
+    .slide th { background: rgba(15, 118, 110, 0.6); color: var(--teal-100); font-weight: 800; }
+    .slide td { background: rgba(13, 31, 31, 0.5); color: var(--teal-200); }
+    .slide tr:hover td { background: rgba(45, 212, 191, 0.06); }
+    .title-slide .slide-body { justify-content: center; text-align: center; }
+    .title-slide h1 { font-size: 2.8rem; font-weight: 800; color: var(--teal-300); letter-spacing: -0.03em; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+    .title-slide .subtitle { font-size: 1.25rem; color: var(--teal-400); margin-top: 0.6rem; font-weight: 700; }
+    .title-slide .uni { font-size: 1.05rem; color: var(--teal-500); margin-top: 2rem; font-weight: 600; }
+    .slide-footer { padding: 0.6rem 3.25rem; border-top: 1px solid var(--teal-800); font-size: 0.85rem; color: var(--teal-500); display: flex; justify-content: space-between; font-weight: 700; }
+    .slide-num { color: var(--teal-400); font-weight: 700; }
+    .slide-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.75rem; align-items: start; }
+    .team-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; margin: 0.6rem 0; }
+    .team-item { display: flex; justify-content: space-between; padding: 0.6rem 0.85rem; background: rgba(15, 118, 110, 0.15); border: 1px solid var(--teal-700); border-radius: 8px; font-size: 0.95rem; font-weight: 600; color: var(--teal-200); border-left: 4px solid var(--teal-500); }
+    .team-item .id { font-size: 0.82rem; color: var(--teal-500); font-weight: 600; }
+    .problem-solution { margin: 0.65rem 0; padding: 0.85rem 1rem; background: rgba(15, 118, 110, 0.12); border-radius: 10px; border-left: 4px solid var(--teal-500); }
+    .problem-solution strong { display: block; margin-bottom: 0.35rem; color: var(--teal-400); font-weight: 800; font-size: 1rem; }
+    .problem-solution .bullet { color: var(--teal-200); }
+    .thank-you { font-size: 3.25rem; font-weight: 800; color: var(--teal-300); letter-spacing: -0.02em; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+    .thank-you-sub { font-size: 1.4rem; color: var(--teal-400); margin-top: 0.6rem; font-weight: 700; }
+    .nav { position: absolute; bottom: 1rem; right: 2rem; display: flex; gap: 0.5rem; z-index: 100; }
+    .nav button { background: var(--gradient-teal); color: var(--teal-950); border: none; padding: 0.65rem 1.35rem; cursor: pointer; border-radius: 10px; font-size: 0.95rem; font-weight: 800; transition: transform 0.2s, box-shadow 0.2s; }
+    .nav button:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(20, 184, 166, 0.4); }
+    .diagram-wrap { background: rgba(15, 118, 110, 0.15); border: 1px solid var(--teal-700); border-radius: 12px; padding: 1.25rem; margin: 0.75rem 0; display: flex; align-items: center; justify-content: center; min-height: 280px; overflow: auto; }
+    .diagram-wrap svg { max-width: 100%; height: auto; }
+    .diagram-wrap.diagram-large { min-height: 420px; flex: 1; }
+    .diagram-wrap.diagram-large svg { width: 100%; min-width: 750px; }
+    .diagram-wrap .mermaid { display: flex; justify-content: center; }
+    .diagram-wrap pre.mermaid { background: none; font-size: 13px; padding: 0; margin: 0; }
+    .diagram-wrap .mermaid svg { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
+    .slide-with-diagram .slide-body { padding: 1.25rem 2.5rem; display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
+    .slide-with-diagram .slide-body .diagram-wrap.diagram-large { flex: 1; }
+    .slide-backend-layout { display: flex; gap: 1.25rem; align-items: stretch; flex: 1; min-height: 0; }
+    .slide-backend-layout .backend-api { flex: 0 0 280px; display: flex; flex-direction: column; gap: 0.5rem; }
+    .slide-backend-layout .backend-api h2 { margin: 0; }
+    .slide-backend-layout .backend-api .db-table-wrap { flex-shrink: 0; }
+    .slide-backend-layout .backend-diagram { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .slide-backend-layout .backend-diagram h2 { margin: 0 0 0.5rem 0; }
+    .slide-backend-layout .backend-diagram .diagram-wrap { flex: 1; min-height: 0; }
+    .diagram-wrap.diagram-db { min-height: 300px; padding: 1rem; border: 2px solid var(--teal-600); border-radius: 10px; box-shadow: inset 0 0 0 1px rgba(45, 212, 191, 0.15); display: flex; align-items: center; justify-content: center; overflow: auto; }
+    .diagram-wrap.diagram-db .mermaid { font-size: 14px; }
+    .diagram-wrap.diagram-db svg { min-width: 480px; width: 100%; height: auto; }
+    .diagram-wrap.diagram-db svg text { fill: #0d1f1f !important; font-size: 14px !important; font-weight: 600 !important; }
+    .slide-with-diagram h1 { font-size: 1.4rem; margin-bottom: 0.35rem; }
+    .slide-with-diagram h2 { font-size: 0.75rem; margin: 0.35rem 0 0.2rem; }
+    .db-table-wrap { overflow-x: auto; margin: 0.5rem 0; }
+    .db-table-wrap table { font-size: 0.78rem; }
+    .db-table-wrap th, .db-table-wrap td { padding: 0.4rem 0.6rem; }
+    .arch-diagram { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 0.5rem; align-items: stretch; margin: 1rem 0; }
+    .arch-tier { background: rgba(15, 118, 110, 0.2); border: 2px solid var(--teal-500); border-radius: 12px; padding: 1rem; text-align: center; min-width: 140px; }
+    .arch-tier strong { display: block; color: var(--teal-300); font-size: 0.95rem; margin-bottom: 0.4rem; }
+    .arch-tier span { font-size: 0.8rem; color: var(--teal-200); font-weight: 600; }
+    .arch-arrow { display: flex; align-items: center; color: var(--teal-500); font-size: 1.5rem; }
+    .slide-desc { margin-top: 0.75rem; padding: 0.75rem 1rem; background: rgba(15, 118, 110, 0.12); border-radius: 8px; font-size: 0.9rem; color: var(--teal-200); line-height: 1.65; }
+    .ui-screenshot { width: 100%; max-width: 220px; border-radius: 8px; border: 2px solid var(--teal-600); box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+    .slide-body.slide-with-img { display: flex; flex-direction: column; gap: 1rem; }
+    .slide-body.slide-with-img .slide-content { width: 100%; }
+    .slide-body.slide-with-img .slide-img { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-start; justify-content: center; }
+    .slide-body.slide-with-img .slide-img > div { display: flex; flex-direction: column; gap: 0.3rem; align-items: center; }
+    .slide-body.slide-with-img .slide-desc { font-size: 0.75rem; padding: 0.45rem 0.65rem; line-height: 1.45; }
+    .slide-body.slide-with-img .slide-img p { font-size: 0.75rem; margin-bottom: 0.3rem; margin-top: 0; }
+    .slide-body.slide-with-img .slide-img .slide-desc { margin-top: 0; }
+    .nav-print { margin-left: 0.5rem; }
+    .nav-print button { background: rgba(45, 212, 191, 0.2); color: var(--teal-300); border: 2px solid var(--teal-500); }
+    .nav-print button:hover { background: rgba(45, 212, 191, 0.35); }
+    @media print {
+      @page { size: landscape; margin: 0.5cm; }
+      html, body { overflow: visible !important; height: auto !important; background: #0d1f1f !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0 !important; padding: 0 !important; }
+      .nav { display: none !important; }
+      .deck { width: 100% !important; max-width: none !important; height: auto !important; max-height: none !important; box-shadow: none !important; border-radius: 0 !important; }
+      .slides { position: static !important; display: block !important; }
+      .slide { position: relative !important; visibility: visible !important; pointer-events: auto !important; width: 100% !important; height: 100vh !important; max-height: 100vh !important; min-height: 0 !important; page-break-after: always !important; break-after: page !important; overflow: hidden !important; box-sizing: border-box !important; }
+      .slide:last-child { page-break-after: auto !important; break-after: auto !important; }
+      .slide-body { overflow: hidden !important; flex: 1 !important; min-height: 0 !important; }
+      .slide-with-diagram .slide-body { overflow: hidden !important; }
+      .slide-backend-layout { flex: 1 !important; min-height: 0 !important; overflow: hidden !important; }
+      .diagram-wrap.diagram-db { flex: 1 !important; min-height: 0 !important; overflow: hidden !important; }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <div class="deck">
+    <div class="slides">
+      <!-- 1. Title -->
+      <section class="slide title-slide active">
+        <div class="slide-topbar"></div>
+        <div class="slide-body">
+          <h1>Design of a Surgical Training Environment Using Virtual Reality (VR)</h1>
+          <p class="subtitle">Graduation Project — Presentation</p>
+          <p class="uni">University of Hail — College of Computer Science and Engineering</p>
+          <p class="slide-desc">A graduation project that provides a safe surgical training environment using virtual reality. The system offers guided wound suturing simulation with performance assessment and runs in the browser without expensive hardware.</p>
+        </div>
+        <div class="slide-footer"><span></span><span class="slide-num">1 / 15</span></div>
+      </section>
+
+      <!-- 2. Team Members -->
+      <section class="slide">
+        <div class="slide-topbar"></div>
+        <div class="slide-body">
+          <h1>Team Members</h1>
+          <div class="team-grid">
+            <div class="team-item"><span>Fajr Khalid Mohammed Almuwallad</span><span class="id">202103498</span></div>
+            <div class="team-item"><span>Hadeel Bader Alshammari</span><span class="id">202104146</span></div>
+            <div class="team-item"><span>Mona Mohammad Thufel Alanazi</span><span class="id">202004644</span></div>
+            <div class="team-item"><span>Wedad Nasser Alrshedi</span><span class="id">202103422</span></div>
+            <div class="team-item"><span>Atheer Khalid Alshalan</span><span class="id">202111183</span></div>
+            <div class="team-item"><span>Shouq Adel Alkhashman</span><span class="id">202000258</span></div>
+          </div>
+          <p class="slide-desc">A team of six members from the College of Computer Science and Engineering. Each member contributed to different aspects: system architecture, core functionality, backend and database, and frontend implementation.</p>
+        </div>
+        <div class="slide-footer"><span>Team Members</span><span class="slide-num">2 / 15</span></div>
+      </section>
+
+      <!-- 3. Outline -->
+      <section class="slide">
+        <div class="slide-topbar"></div>
+        <div class="slide-body">
+          <h1>Outline</h1>
+          <ul class="outline-list">
+            <li><span class="num">1</span>System Architecture and Design Implementation</li>
+            <li><span class="num">2</span>Core Functionality Implementation</li>
+            <li><span class="num">3</span>Backend and Database Implementation</li>
+            <li><span class="num">4</span>Frontend / User Interface Implementation</li>
+            <li><span class="num">5</span>Testing Strategy and Methodology</li>
+            <li><span class="num">6</span>Testing Results and Bug Fixing</li>
+            <li><span class="num">7</span>System Integration Status</li>
+            <li><span class="num">8</span>Deployment Readiness</li>
+            <li><span class="num">9</span>Achieved Milestones and Current Progress</li>
+            <li><span class="num">10</span>Remaining Work and Plan to Completion</li>
+          </ul>
+          <p class="slide-desc">The presentation covers all ten suggested topics: from system architecture and design, through functionality, backend, and frontend, then testing, integration, deployment, and finally achieved milestones and remaining work.</p>
+        </div>
+        <div class="slide-footer"><span>Outline</span><span class="slide-num">3 / 15</span></div>
+      </section>
+
+      <!-- 4. System Architecture and Design Implementation -->
+      <section class="slide slide-with-diagram">
+        <div class="slide-topbar"></div>
+        <div class="slide-body">
+          <h1>1. System Architecture and Design Implementation</h1>
+          <div class="diagram-wrap">
+            <pre class="mermaid">
+flowchart TB
+  subgraph Pres[Presentation Layer]
+    UI[React UI]
+    Sim[Three.js + WebXR Simulator]
+    UI --> Sim
+  end
+  subgraph App[Application Layer]
+    API[Express REST API]
+  end
+  subgraph Data[Data Layer]
+    DB[(MySQL)]
+  end
+  Pres -->|HTTP/JSON| App
+  App -->|SQL| Data
+            </pre>
+          </div>
+          <table>
+            <thead><tr><th>Tier</th><th>Technology</th><th>Responsibility</th></tr></thead>
+            <tbody>
+              <tr><td>Presentation</td><td>React 18, Vite 5, Tailwind, Three.js</td><td>UI, routing, 3D simulator, VR/AR</td></tr>
+              <tr><td>Application</td><td>Express (Node.js)</td><td>REST API, business logic, session management</td></tr>
+              <tr><td>Data</td><td>MySQL</td><td>TRAINEES, COURSES, SESSIONS, REPORTS</td></tr>
+            </tbody>
+          </table>
+          <p class="slide-desc">The system is built on a three-tier architecture: presentation layer (React and Three.js for UI and simulation), application layer (Express for request handling), and data layer (MySQL). Routing via React Router, state management via AuthContext and LangContext, with route protection for users and instructors.</p>
+        </div>
+        <div class="slide-footer"><span>System Architecture</span><span class="slide-num">4 / 15</span></div>
+      </section>
+
+      <!-- 5. Core Functionality Implementation -->
+      <section class="slide">
+        <div class="slide-topbar"></div>
+        <div class="slide-body">
+          <h1>2. Core Functionality Implementation</h1>
+          <table>
+            <thead><tr><th>Feature</th><th>Implementation</th></tr></thead>
+            <tbody>
+              <tr><td>Login & Register</td><td>AuthContext, api/auth/login, api/auth/register</td></tr>
+              <tr><td>User Profile</td><td>Specialty, PriorSimulationExperience, UnityUnrealExperience</td></tr>
+              <tr><td>Trainee Dashboard</td><td>Stats, chart, quick actions — api/stats/:traineeId</td></tr>
+              <tr><td>Instructor Dashboard</td><td>View all trainees and reports</td></tr>
+              <tr><td>14-Step Simulator</td><td>gameLogic.js, scene.js — proximity validation, hold-time by difficulty</td></tr>
+              <tr><td>VR & AR Mode</td><td>WebXR immersive-vr, immersive-ar — vr.js</td></tr>
+              <tr><td>Reports</td><td>Filter, CSV export, print</td></tr>
+              <tr><td>Bilingual</td><td>LangContext, i18n/strings.ts — Arabic RTL</td></tr>
+            </tbody>
+          </table>
+          <p class="slide-desc">Login and registration are implemented with user profile (Specialty, PriorSimulationExperience, UnityUnrealExperience). The trainee dashboard displays stats and charts. The simulator uses gameLogic.js and scene.js for proximity validation and hold-time by difficulty (Beginner 3.5s, Intermediate 2.5s, Advanced 1.5s). VR and AR modes via WebXR.</p>
+        </div>
+        <div class="slide-footer"><span>Core Functionality</span><span class="slide-num">5 / 15</span></div>
+      </section>
+
+      <!-- 6. Backend and Database Implementation -->
+      <section class="slide slide-with-diagram">
+        <div class="slide-topbar"></div>
+        <div class="slide-body">
+          <h1 style="flex-shrink: 0;">3. Backend and Database Implementation</h1>
+          <div class="slide-backend-layout">
+            <div class="backend-api">
+              <h2>Express API Endpoints</h2>
+              <div class="db-table-wrap">
+                <table>
+                  <thead><tr><th>Endpoint</th><th>Method</th><th>Purpose</th></tr></thead>
+                  <tbody>
+                    <tr><td>/api/auth/register, /login</td><td>POST</td><td>Create account, authenticate</td></tr>
+                    <tr><td>/api/sessions</td><td>POST</td><td>Create training session</td></tr>
+                    <tr><td>/api/reports</td><td>POST, GET</td><td>Create and fetch reports</td></tr>
+                    <tr><td>/api/admin/trainees, /reports</td><td>GET</td><td>Instructor: all trainees and reports</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <p class="slide-desc" style="margin-top: 0.5rem; font-size: 0.8rem;">3NF. Indexes: TraineeID, Date, SessionID, Email. Migrations for profile, role, difficulty.</p>
+            </div>
+            <div class="backend-diagram">
+              <h2>MySQL Schema — ER Diagram</h2>
+              <div class="diagram-wrap diagram-db">
+                <pre class="mermaid">
+erDiagram
+    TRAINEES {
+        int TraineeID PK
+        string Name
+        string Email
+        string Role
+    }
+    COURSES {
+        int CourseID PK
+        string CourseName
+        string Type
+    }
+    SESSIONS {
+        int SessionID PK
+        int TraineeID FK
+        int CourseID FK
+        string Date
+    }
+    REPORTS {
+        int ReportID PK
+        int SessionID FK
+        float TotalScore
+        int StepsCompleted
+    }
+    TRAINEES ||--o{ SESSIONS : "has"
+    COURSES ||--o{ SESSIONS : "has"
+    SESSIONS ||--|| REPORTS : "generates"
+                </pre>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="slide-footer"><span>Backend & Database</span><span class="slide-num">6 / 15</span></div>
+      </section>
+
+      <!-- 7. Frontend / User Interface Implementation -->
+      <section class="slide">
+        <div class="slide-topbar"></div>
+        <div class="slide-body slide-with-img">
+          <div class="slide-content">
+            <h1>4. Frontend / User Interface Implementation</h1>
+            <table>
+              <thead><tr><th>Technology</th><th>Purpose</th></tr></thead>
+              <tbody>
+                <tr><td>React 18</td><td>Components, hooks, state</td></tr>
+                <tr><td>Vite 5</td><td>Build, dev server</td></tr>
+                <tr><td>Tailwind CSS 4</td><td>Utility-first styling</td></tr>
+                <tr><td>TypeScript</td><td>Type safety</td></tr>
+              </tbody>
+            </table>
+            <h2>Pages & Routes</h2>
+            <p>Landing (/), Overview (/overview), Login (/login), Dashboard (/dashboard), Training (/training), Reports (/reports), Instructor Dashboard (/instructor-dashboard), Implementation Report (/implementation-report)</p>
+            <p><strong>UI Principles:</strong> Responsive, RTL for Arabic, teal color scheme, accessibility, error handling.</p>
+          </div>
+          <div class="slide-img">
+            <div>
+              <p style="font-size: 0.75rem; color: var(--teal-400); margin-bottom: 0.3rem; font-weight: 700;">Landing Page</p>
+              <img src="landing.png" alt="Landing page - Surgical Training Environment VR" class="ui-screenshot">
+            </div>
+            <div>
+              <p style="font-size: 0.75rem; color: var(--teal-400); margin-bottom: 0.3rem; font-weight: 700;">Dashboard</p>
+              <img src="dashboard.png" alt="Trainee Dashboard - Surgical Training Environment VR" class="ui-screenshot">
+            </div>
+          </div>
+        </div>
+        <div class="slide-footer"><span>Frontend / UI</span><span class="slide-num">7 / 15</span></div>
+      </section>
+
+      <!-- 8. Testing Strategy and Methodology -->
+      <section class="slide">
+        <div class="slide-topbar"></div>
+        <div class="slide-body">
+          <h1>5. Testing Strategy and Methodology</h1>
+          <h2>Unit Tests</h2>
+          <p><strong>validation.ts:</strong> validateEmail, validatePassword, validateRequired — empty/invalid/valid cases</p>
+          <h2>Integration Tests</h2>
+          <ul>
+            <li>Login Flow: /login → submit → redirect to /dashboard</li>
+            <li>Register Flow: create account → redirect</li>
+            <li>Training Flow: Login → /training → Start → simulator loads</li>
+            <li>Reports Flow: complete session → /reports → CSV export, print</li>
+          </ul>
+          <h2>UI, Simulator & Database Tests</h2>
+          <p>Navigation, RTL, responsive, language switch. 14-step procedure, tools, localStorage. TRAINEES/SESSIONS/REPORTS CRUD.</p>
+          <p class="slide-desc">Testing strategy is documented in docs/testing-spec.md. Unit tests cover validation functions (email, password, required fields). Integration tests cover login, register, training, and reports flows. UI tests include navigation, RTL layout, and responsiveness. Simulator and database tests cover step completion and CRUD operations.</p>
+        </div>
+        <div class="slide-footer"><span>Testing Strategy</span><span class="slide-num">8 / 15</span></div>
+      </section>
+
+      <!-- 9. Testing Results and Bug Fixing -->
+      <section class="slide">
+        <div class="slide-topbar"></div>
+        <div class="slide-body">
+          <h1>6. Testing Results and Bug Fixing</h1>
+          <table>
+            <thead><tr><th>Test Type</th><th>Description</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Unit</td><td>validation.ts — validateEmail, validatePassword</td><td>Pass</td></tr>
+              <tr><td>Integration</td><td>Login → Dashboard, Training → Simulator → Reports</td><td>Pass</td></tr>
+              <tr><td>UI</td><td>Navigation, RTL, responsive layout</td><td>Pass</td></tr>
+              <tr><td>Simulator</td><td>14-step procedure completion</td><td>Pass</td></tr>
+              <tr><td>Database</td><td>CRUD via API, MySQL persistence</td><td>Pass</td></tr>
+              <tr><td>VR/AR</td><td>WebXR session (when supported)</td><td>Pass</td></tr>
+            </tbody>
+          </table>
+          <p><strong>Bug Fixing:</strong> Issues resolved during development: validation edge cases, API error handling, simulator step sequencing, RTL layout adjustments.</p>
+          <p class="slide-desc">All test categories passed. Bugs fixed during development: email validation edge cases, API 401 error handling, simulator hold-time logic, Arabic RTL layout adjustments. Results are documented in the graduation report.</p>
+        </div>
+        <div class="slide-footer"><span>Testing Results</span><span class="slide-num">9 / 15</span></div>
+      </section>
+
+      <!-- 10. System Integration Status -->
+      <section class="slide">
+        <div class="slide-topbar"></div>
+        <div class="slide-body">
+          <h1>7. System Integration Status</h1>
+          <ul>
+            <li><strong>Frontend ↔ Backend:</strong> React app communicates with Express API via fetch. Proxy configured in Vite (dev) for /api.</li>
+            <li><strong>Backend ↔ Database:</strong> Express uses mysql2 to connect to MySQL. All CRUD operations integrated.</li>
+            <li><strong>Simulator ↔ App:</strong> Standalone simulator.html receives sessionId, traineeId, difficulty via URL params. Reports saved to localStorage then synced to API.</li>
+            <li><strong>Auth Flow:</strong> Login/Register → AuthContext → localStorage → PrivateRoute/InstructorRoute.</li>
+          </ul>
+          <p><strong>Status:</strong> All components integrated and working together. End-to-end flow verified.</p>
+          <p class="slide-desc">Integration is complete: React communicates with Express via fetch, and Express connects to MySQL. The simulator runs in a separate page, receives sessionId, traineeId, and difficulty via URL params, saves reports to localStorage, then syncs with the API. Auth flow works via AuthContext and localStorage with session persistence on page reload.</p>
+        </div>
+        <div class="slide-footer"><span>System Integration</span><span class="slide-num">10 / 15</span></div>
+      </section>
+
+      <!-- 11. Deployment Readiness -->
+      <section class="slide">
+        <div class="slide-topbar"></div>
+        <div class="slide-body">
+          <h1>8. Deployment Readiness</h1>
+          <table>
+            <thead><tr><th>Component</th><th>Command</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Frontend Build</td><td><code>npm run build</code></td><td>Vite produces dist/</td></tr>
+              <tr><td>Backend</td><td><code>npm run server</code> or <code>cd server && npm start</code></td><td>Express on port 3001</td></tr>
+              <tr><td>Database</td><td><code>cd server && npm run init-db</code></td><td>MySQL schema + migrations</td></tr>
+              <tr><td>Preview</td><td><code>npm run preview</code></td><td>Test production build locally</td></tr>
+            </tbody>
+          </table>
+          <p><strong>Environment:</strong> server/.env for MySQL (MYSQL_HOST, USER, PASSWORD, DATABASE). VITE_API_URL for production API URL.</p>
+          <p><strong>Readiness:</strong> Build succeeds. Server runs. Database initializes. Ready for deployment to hosting (e.g., Vercel + Railway, or traditional VPS).</p>
+          <p class="slide-desc">The npm run build command produces a dist folder ready for deployment. The server runs via npm run server. The database is initialized via init-db. The frontend can be deployed to static hosting (e.g., Vercel) and the backend to Node hosting (e.g., Railway), with managed MySQL. For production, bcrypt is recommended for password hashing.</p>
+        </div>
+        <div class="slide-footer"><span>Deployment Readiness</span><span class="slide-num">11 / 15</span></div>
+      </section>
+
+      <!-- 12. Achieved Milestones and Current Progress -->
+      <section class="slide">
+        <div class="slide-topbar"></div>
+        <div class="slide-body">
+          <h1>9. Achieved Milestones and Current Progress</h1>
+          <ul>
+            <li>✅ Three-tier architecture implemented</li>
+            <li>✅ Login, Register, Auth with role-based access</li>
+            <li>✅ Trainee Dashboard with stats and chart</li>
+            <li>✅ Instructor Dashboard — all trainees and reports</li>
+            <li>✅ 14-step wound suturing simulator with proximity validation</li>
+            <li>✅ VR and AR modes (WebXR)</li>
+            <li>✅ Reports: filter, CSV export, print</li>
+            <li>✅ Bilingual (Arabic/English) with RTL</li>
+            <li>✅ MySQL backend with migrations</li>
+            <li>✅ Testing completed — all categories pass</li>
+          </ul>
+          <p><strong>Current Status:</strong> Project complete for graduation. All core features delivered.</p>
+          <p class="slide-desc">All planned milestones were achieved: architecture, authentication and roles, trainee and instructor dashboards, 14-step simulator, VR and AR modes, reports with export and print, bilingual support, database with migrations, and testing. The project is ready for demonstration and delivery.</p>
+        </div>
+        <div class="slide-footer"><span>Achieved Milestones</span><span class="slide-num">12 / 15</span></div>
+      </section>
+
+      <!-- 13. Remaining Work and Plan to Completion -->
+      <section class="slide">
+        <div class="slide-topbar"></div>
+        <div class="slide-body">
+          <h1>10. Remaining Work and Plan to Completion</h1>
+          <h2>Remaining Work (Future Enhancements)</h2>
+          <ul>
+            <li>Additional surgical procedures (laparoscopic, knot-tying)</li>
+            <li>Physical VR headset optimization</li>
+            <li>AI-based performance assessment</li>
+            <li>Session resume after interruption</li>
+            <li>Password hashing (bcrypt) for production</li>
+          </ul>
+          <h2>Plan to Completion</h2>
+          <p>Graduation project scope: <strong>Complete.</strong> All required features delivered. Future work is optional enhancement for post-graduation or research.</p>
+          <p class="slide-desc">The graduation project scope is complete. Remaining work is optional enhancement: additional surgical procedures, physical VR headset optimization, AI-based performance assessment, session resume after interruption. No blocking tasks for delivery.</p>
+        </div>
+        <div class="slide-footer"><span>Remaining Work</span><span class="slide-num">13 / 15</span></div>
+      </section>
+
+      <!-- 14. References -->
+      <section class="slide">
+        <div class="slide-topbar"></div>
+        <div class="slide-body">
+          <h1>References</h1>
+          <ul>
+            <li>React Documentation — https://react.dev</li>
+            <li>Three.js Documentation — https://threejs.org/docs</li>
+            <li>WebXR Device API — https://www.w3.org/TR/webxr/</li>
+            <li>Express.js — https://expressjs.com</li>
+            <li>MySQL Documentation — https://dev.mysql.com/doc/</li>
+            <li>Vite — https://vitejs.dev</li>
+            <li>Tailwind CSS — https://tailwindcss.com</li>
+          </ul>
+          <p class="slide-desc">The project uses React, Three.js, WebXR, Express, MySQL, Vite, and Tailwind CSS. The links above are official documentation for each technology.</p>
+        </div>
+        <div class="slide-footer"><span>References</span><span class="slide-num">14 / 15</span></div>
+      </section>
+
+      <!-- 15. Thank You -->
+      <section class="slide title-slide">
+        <div class="slide-topbar"></div>
+        <div class="slide-body">
+          <div class="thank-you">Thank You</div>
+          <p class="thank-you-sub">Questions?</p>
+          <p class="uni" style="margin-top: 2rem;">Surgical Training Environment VR — University of Hail</p>
+        </div>
+        <div class="slide-footer"><span>Thank You</span><span class="slide-num">15 / 15</span></div>
+      </section>
+    </div>
+
+    <div class="nav">
+      <button id="prev">← Previous</button>
+      <button id="next">Next →</button>
+      <span class="nav-print"><button id="print" title="Print / Save as PDF">🖨 Print PDF</button></span>
+    </div>
+  </div>
+
+  <script>
+    mermaid.initialize({
+      theme: 'base',
+      themeVariables: {
+        darkMode: true,
+        background: '#0d1f1f',
+        primaryColor: '#0f766e',
+        primaryTextColor: '#ccfbf1',
+        primaryBorderColor: '#14b8a6',
+        lineColor: '#2dd4bf',
+        secondaryColor: '#115e59',
+        tertiaryColor: '#134e4a',
+        mainBkg: '#0f766e',
+        nodeBorder: '#14b8a6',
+        clusterBkg: '#115e59',
+        textColor: '#ccfbf1',
+        fontFamily: 'Plus Jakarta Sans, sans-serif',
+        fontSize: '16px'
+      },
+      er: {
+        fontSize: 16,
+        minEntityWidth: 160,
+        minEntityHeight: 100,
+        entityPadding: 18,
+        diagramPadding: 25,
+        fill: '#115e59',
+        stroke: '#14b8a6'
+      },
+      startOnLoad: true,
+      securityLevel: 'loose'
+    });
+
+    const slides = document.querySelectorAll('.slide');
+    const total = slides.length;
+    let current = 0;
+
+    function show(i) {
+      current = ((i % total) + total) % total;
+      slides.forEach((s, j) => s.classList.toggle('active', j === current));
+    }
+
+    document.getElementById('prev').onclick = () => show(current - 1);
+    document.getElementById('next').onclick = () => show(current + 1);
+    document.getElementById('print').onclick = () => window.print();
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') show(current - 1);
+      if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); show(current + 1); }
+    });
+  </script>
+</body>
+</html>

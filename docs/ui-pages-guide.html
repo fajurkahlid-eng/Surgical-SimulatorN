@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UI Screenshots Guide — Surgical Training &amp; Simulator</title>
+  <style>
+    :root { --bg: #0d1f1f; --card: #134e4a; --text: #ccfbf1; --muted: #5eead4; --border: #0f766e; }
+    * { box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 1.5rem; line-height: 1.6; }
+    h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    h2 { font-size: 1.1rem; color: var(--muted); margin: 2rem 0 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.35rem; }
+    p.lead { color: var(--muted); margin-bottom: 2rem; font-size: 0.95rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    th, td { border: 1px solid var(--border); padding: 0.65rem 0.75rem; text-align: left; vertical-align: top; }
+    th { background: var(--card); color: var(--muted); }
+    tr:nth-child(even) td { background: rgba(19, 78, 74, 0.35); }
+    code { background: rgba(0,0,0,0.35); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.85em; }
+    @media print { body { background: #fff; color: #111; } th, td { border-color: #ccc; } }
+  </style>
+</head>
+<body>
+  <h1>UI Screenshots Guide — Web App &amp; Simulator</h1>
+  <p class="lead">Use this table while capturing screens: page name, URL, what happens, and the suggested filename (save images under <code>docs/screenshots/</code>).</p>
+
+  <h2>Web application (React)</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Page</th>
+        <th>URL</th>
+        <th>Description / what happens</th>
+        <th>Filename</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>Landing</td>
+        <td><code>/</code></td>
+        <td>Welcome, login links, overview, open simulator.</td>
+        <td><code>01-landing.png</code></td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Project overview</td>
+        <td><code>/overview</code></td>
+        <td>Project goals, features, methodology (static / Markdown content).</td>
+        <td><code>02-overview.jpeg</code></td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>Login</td>
+        <td><code>/login</code></td>
+        <td>Sign-in form; you can add a separate shot for the register tab if needed.</td>
+        <td><code>03-login.jpeg</code></td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>Dashboard (trainee)</td>
+        <td><code>/dashboard</code></td>
+        <td>After login as trainee: stats, charts, shortcuts to training and reports.</td>
+        <td><code>04-dashboard.png</code></td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>Training</td>
+        <td><code>/training</code></td>
+        <td>Difficulty selection and “open simulator” to start a session linked to the trainee.</td>
+        <td><code>05-training.jpeg</code></td>
+      </tr>
+      <tr>
+        <td>6</td>
+        <td>Reports</td>
+        <td><code>/reports</code></td>
+        <td>Report list, date filter, CSV, print; latest evaluation card may appear after returning from the sim.</td>
+        <td><code>06-reports.jpeg</code></td>
+      </tr>
+      <tr>
+        <td>7</td>
+        <td>Implementation report</td>
+        <td><code>/implementation-report</code></td>
+        <td>Technical documentation for the project (structure, stack, etc.).</td>
+        <td><code>07-implementation-report.jpeg</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Simulator (Babylon.js)</h2>
+  <p class="lead" style="margin-top:0">Open from the app via <code>/training</code> → open simulator, or directly <code>/surgical-sim/index.html</code> (with URL params as needed).</p>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Screen</th>
+        <th>When it appears</th>
+        <th>Description / what happens</th>
+        <th>Filename</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>8</td>
+        <td>Start screen</td>
+        <td>When the sim opens</td>
+        <td>Name entry (or bridged from the app), Start and Start with VR.</td>
+        <td><code>09-sim-start.jpeg</code></td>
+      </tr>
+      <tr>
+        <td>9</td>
+        <td>Ward exploration</td>
+        <td>After Start</td>
+        <td>3D ward, movement, interaction hints.</td>
+        <td><code>10-sim-ward.jpeg</code></td>
+      </tr>
+      <tr>
+        <td>10</td>
+        <td>Procedure choice</td>
+        <td>After pre-op (if any) or when surgery starts</td>
+        <td>Menu to pick procedure type (suturing, layered closure, etc.).</td>
+        <td><code>11-sim-surgery-choice.jpeg</code></td>
+      </tr>
+      <tr>
+        <td>11</td>
+        <td>During procedure</td>
+        <td>Inside a procedure</td>
+        <td>Representative shot of an active procedure (e.g. suturing).</td>
+        <td><code>12-sim-procedure.jpeg</code></td>
+      </tr>
+      <tr>
+        <td>12</td>
+        <td>Evaluation / results</td>
+        <td>After finishing a procedure</td>
+        <td>Scores and feedback; return to app or go to evaluation.</td>
+        <td><code>13-sim-results.jpeg</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p style="margin-top:2rem; font-size:0.85rem; color:var(--muted);">The deck <code>presentation.html</code> references the same filenames in the “UI Screenshots” slides. After adding images, refresh the page to view them.</p>
+</body>
+</html>

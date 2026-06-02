@@ -1,0 +1,14 @@
+Surgical Training — asset folders (PlayCanvas Editor or self-hosted)
+
+Place GLB files under your PlayCanvas project’s asset bucket (Editor: drag into Assets panel).
+Suggested local mirror for version control:
+
+  models/
+    mainbuild.glb      — hospital / building environment (static mesh + colliders recommended)
+    doctor.glb          — doctor mesh (optional visible body); player root is usually an empty + camera
+    BodyHuman.glb      — patient on bed
+
+Optional:
+  models/needle_and_thread_-_inktober.glb  — decorative UI or future 3D needle prop (not required for 2D suturing mode)
+
+In the Editor, after import, assign model entities under your "World3D" hierarchy (see setup instructions bundled with the scripts).
