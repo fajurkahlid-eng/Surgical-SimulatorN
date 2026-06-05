@@ -5,12 +5,15 @@ let pool = null;
 
 export async function getPool() {
   if (!pool) {
-    pool = mysql.createPool({
-      ...config.mysql,
-      waitForConnections: true,
-      connectionLimit: 10,
-      queueLimit: 0,
-    });
+pool = mysql.createPool({
+  ...config.mysql,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+  ssl: {
+    rejectUnauthorized: false
+  }
+});
   }
   return pool;
 }
