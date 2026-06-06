@@ -93,10 +93,11 @@ app.get('/api/health', (req, res) => {
   res.json({ ok: true });
 });
 
-// دالة بناء الجداول
 async function ensureTables() {
   try {
-    console.log("جاري التأكد من وجود الجداول...");
+    console.log("جاري التأكد من هيكلية الجداول...");
+    
+    // إنشاء الجدول الأساسي
     await query(`
       CREATE TABLE IF NOT EXISTS TRAINEES (
         TraineeID INT AUTO_INCREMENT PRIMARY KEY,
@@ -108,9 +109,19 @@ async function ensureTables() {
         Role VARCHAR(50) DEFAULT 'trainee'
       )
     `);
-    console.log("تم التأكد من وجود الجداول بنجاح.");
+
+    // إضافة الأعمدة الناقصة (إذا لم تكن موجودة)
+    try {
+        await query(`ALTER TABLE TRAINEES ADD COLUMN PriorSimulationExperience VARCHAR(255)`);
+    } catch (e) { /* العمود موجود بالفعل */ }
+
+    try {
+        await query(`ALTER TABLE TRAINEES ADD COLUMN UnityUnrealExperience VARCHAR(255)`);
+    } catch (e) { /* العمود موجود بالفعل */ }
+
+    console.log("تم تحديث هيكلية الجداول بنجاح.");
   } catch (err) {
-    console.error("خطأ في إنشاء الجداول:", err);
+    console.error("خطأ في تحديث الجداول:", err);
   }
 }
 
