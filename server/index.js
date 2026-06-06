@@ -290,9 +290,31 @@ app.get('/api/health', (req, res) => {
   res.json({ ok: true });
 });
 
-app.listen(config.port, () => {
-  console.log(`Surgical Training API running on http://localhost:${config.port}`);
-  if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
-    console.warn('[auth] Set JWT_SECRET in production — refusing default dev secret is recommended.');
+// أضف هذه الدالة قبل app.listen
+async function ensureTables() {
+  try {
+    await query(`
+      CREATE TABLE IF NOT EXISTS TRAINEES (
+        TraineeID INT AUTO_INCREMENT PRIMARY KEY,
+        Name VARCHAR(255) NOT NULL,
+        Email VARCHAR(255) UNIQUE NOT NULL,
+        Password VARCHAR(255) NOT NULL,
+        Progress FLOAT DEFAULT 0,
+        Specialty VARCHAR(255),
+        Role VARCHAR(50) DEFAULT 'trainee'
+      );
+    `);
+    console.log("تم التأكد من وجود جداول قاعدة البيانات بنجاح.");
+  } catch (err) {
+    console.error("خطأ في إنشاء الجداول:", err);
   }
+}
+
+// قم بتشغيلها
+ensureTables().then(() => {
+  app.listen(config.port, () => {
+    console.log(`Surgical Training API running on port ${config.port}`);
+  });
+});
+  
 });
