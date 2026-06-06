@@ -47,10 +47,14 @@ app.post('/api/auth/register', async (req, res) => {
       email: row.Email,
     });
     res.json({ token, ...publicUserRow(row) });
-  } catch (err) {
-    console.error('[register]', err);
-    res.status(500).json({ error: 'Registration failed' });
   }
+  
+catch (err) {
+  console.error('[register]', err);
+  res.status(500).json({ error: 'Registration failed: ' + err.message }); // أضفنا err.message هنا
+}
+
+  
 });
 
 // Auth: Login
