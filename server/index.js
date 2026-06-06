@@ -310,7 +310,7 @@ app.get('/api/health', (req, res) => {
 // DATABASE INITIALIZATION & SERVER START
 // =========================================================================
 
-// التعديل الذكي: فحص وجود الأعمدة في قاعدة البيانات قبل محاولة إضافتها
+// التعديل الآمن والنهائي لفحص هيكلية الجداول والأعمدة بدون استعلامات معقدة
 async function ensureTables() {
   try {
     console.log("جاري التأكد من هيكلية الجداول...");
@@ -328,17 +328,11 @@ async function ensureTables() {
       )
     `);
 
-    // 2. جلب قائمة الأعمدة الحالية الموجودة في الجدول لتفادي استعلامات الـ Alter الخاطئة
-    const existingColumns = await query(`
-      SELECT COLUMN_NAME 
-      FROM INFORMATION_SCHEMA.COLUMNS 
-      WHERE TABLE_NAME = 'TRAINEES' AND TABLE_SCHEMA = DATABASE()
-    `);
-    
-    // تحويل النتيجة مصفوفة نصوص بسيطة تحتوي أسماء الأعمدة لتسهيل البحث
-    const columnNames = existingColumns.map(col => (col.COLUMN_NAME || col.column_name));
+    // 2. جلب الأعمدة الحالية باستخدام SHOW COLUMNS المضمون والمدعوم في كل قواعد البيانات
+    const columns = await query('SHOW COLUMNS FROM TRAINEES');
+    const columnNames = columns.map(c => c.Field || c.field);
 
-    // 3. إضافة الأعمدة فقط إذا لم تكن موجودة بالفعل
+    // 3. إضافة الأعمدة الناقصة فقط إذا لم تكن موجودة بالفعل لتفادي التكرار وانهيار السيرفر
     if (!columnNames.includes('PriorSimulationExperience')) {
       await query(`ALTER TABLE TRAINEES ADD COLUMN PriorSimulationExperience VARCHAR(255)`);
       console.log("تم إضافة عمود PriorSimulationExperience بنجاح.");
@@ -349,7 +343,7 @@ async function ensureTables() {
       console.log("تم إضافة عمود UnityUnrealExperience بنجاح.");
     }
 
-    console.log("تم فحص وتحديث هيكلية الجداول بنجاح بدون أي تكرار أو أخطاء.");
+    console.log("تم تحديث وجاهزية هيكلية الجداول بنجاح.");
   } catch (err) {
     console.error("خطأ في تحديث الجداول:", err);
   }
@@ -358,7 +352,7 @@ async function ensureTables() {
 // تشغيل الفحص ثم إقلاع السيرفر
 ensureTables().then(() => {
   app.listen(config.port, () => {
-    console.log(`Surgical Training API running on http://localhost:${config.port}`);
+    console.log(`Surgical Training API running on port ${config.port}`);
     if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
       console.warn('[auth] Set JWT_SECRET in production — refusing default dev secret is recommended.');
     }
