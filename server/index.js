@@ -38,7 +38,6 @@ app.post('/api/auth/register', async (req, res) => {
     }
     const hashed = await hashPassword(password);
     
-    // تم الحفاظ على إدخال كافة الحقول كاملة
     await query(
       'INSERT INTO TRAINEES (Name, Email, Password, Progress, Specialty, PriorSimulationExperience, UnityUnrealExperience, Role) VALUES (?, ?, ?, 0, ?, ?, ?, ?)',
       [name.trim(), email.trim(), hashed, specialty?.trim() || null, priorSimulationExperience || null, unityUnrealExperience || null, 'trainee']
@@ -56,7 +55,6 @@ app.post('/api/auth/register', async (req, res) => {
     res.json({ token, ...publicUserRow(row) });
   } catch (err) {
     console.error('[register]', err);
-    // التعديل الحديث: إضافة رسالة الخطأ لتسهيل تتبع المشاكل
     res.status(500).json({ error: 'Registration failed: ' + err.message }); 
   }
 });
@@ -81,7 +79,6 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
     
-    // ميزة إعادة التشفير التلقائي للأمان من الكود القديم
     if (needsRehash(row.Password)) {
       const hashed = await hashPassword(password);
       await query('UPDATE TRAINEES SET Password = ? WHERE TraineeID = ?', [hashed, row.TraineeID]);
@@ -313,12 +310,12 @@ app.get('/api/health', (req, res) => {
 // DATABASE INITIALIZATION & SERVER START
 // =========================================================================
 
-// ميزة التعديل الحديث: التأكد التلقائي من الجداول قبل الإقلاع
+// التعديل الذكي: فحص وجود الأعمدة في قاعدة البيانات قبل محاولة إضافتها
 async function ensureTables() {
   try {
     console.log("جاري التأكد من هيكلية الجداول...");
     
-    // إنشاء الجدول الأساسي في حال عدم وجوده
+    // 1. إنشاء الجدول الأساسي إن لم يكن موجوداً
     await query(`
       CREATE TABLE IF NOT EXISTS TRAINEES (
         TraineeID INT AUTO_INCREMENT PRIMARY KEY,
@@ -331,16 +328,28 @@ async function ensureTables() {
       )
     `);
 
-    // التحقق الآمن وإضافة الأعمدة الإضافية
-    try {
-        await query(`ALTER TABLE TRAINEES ADD COLUMN PriorSimulationExperience VARCHAR(255)`);
-    } catch (e) { /* العمود موجود بالفعل فلا داعي لعمل شيء */ }
+    // 2. جلب قائمة الأعمدة الحالية الموجودة في الجدول لتفادي استعلامات الـ Alter الخاطئة
+    const existingColumns = await query(`
+      SELECT COLUMN_NAME 
+      FROM INFORMATION_SCHEMA.COLUMNS 
+      WHERE TABLE_NAME = 'TRAINEES' AND TABLE_SCHEMA = DATABASE()
+    `);
+    
+    // تحويل النتيجة مصفوفة نصوص بسيطة تحتوي أسماء الأعمدة لتسهيل البحث
+    const columnNames = existingColumns.map(col => (col.COLUMN_NAME || col.column_name));
 
-    try {
-        await query(`ALTER TABLE TRAINEES ADD COLUMN UnityUnrealExperience VARCHAR(255)`);
-    } catch (e) { /* العمود موجود بالفعل فلا داعي لعمل شيء */ }
+    // 3. إضافة الأعمدة فقط إذا لم تكن موجودة بالفعل
+    if (!columnNames.includes('PriorSimulationExperience')) {
+      await query(`ALTER TABLE TRAINEES ADD COLUMN PriorSimulationExperience VARCHAR(255)`);
+      console.log("تم إضافة عمود PriorSimulationExperience بنجاح.");
+    }
 
-    console.log("تم تحديث هيكلية الجداول بنجاح.");
+    if (!columnNames.includes('UnityUnrealExperience')) {
+      await query(`ALTER TABLE TRAINEES ADD COLUMN UnityUnrealExperience VARCHAR(255)`);
+      console.log("تم إضافة عمود UnityUnrealExperience بنجاح.");
+    }
+
+    console.log("تم فحص وتحديث هيكلية الجداول بنجاح بدون أي تكرار أو أخطاء.");
   } catch (err) {
     console.error("خطأ في تحديث الجداول:", err);
   }
@@ -350,8 +359,6 @@ async function ensureTables() {
 ensureTables().then(() => {
   app.listen(config.port, () => {
     console.log(`Surgical Training API running on http://localhost:${config.port}`);
-    
-    // تنبيه الأمان من النسخة القديمة في حال عدم تعيين JWT_SECRET في الإنتاج
     if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
       console.warn('[auth] Set JWT_SECRET in production — refusing default dev secret is recommended.');
     }
