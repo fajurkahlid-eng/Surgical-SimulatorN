@@ -306,16 +306,27 @@ app.get('/api/health', (req, res) => {
   res.json({ ok: true });
 });
 
-// =========================================================================
-// DATABASE INITIALIZATION & SERVER START
-// =========================================================================
-
-// التعديل الآمن والنهائي لفحص هيكلية الجداول والأعمدة بدون استعلامات معقدة
+// التعديل الشامل لدالة تهيئة الجداول
 async function ensureTables() {
   try {
-    console.log("جاري التأكد من هيكلية الجداول...");
-    
-    // 1. إنشاء الجدول الأساسي إن لم يكن موجوداً
+    console.log("جاري التأكد من هيكلية الجداول كاملة...");
+
+    // 1. إنشاء جدول الدورات (COURSES)
+    await query(`
+      CREATE TABLE IF NOT EXISTS COURSES (
+        CourseID INT AUTO_INCREMENT PRIMARY KEY,
+        CourseName VARCHAR(255) NOT NULL,
+        Type VARCHAR(50) DEFAULT 'VR'
+      )
+    `);
+
+    // إدراج دورة افتراضية إذا كان الجدول فارغاً لتفادي مشاكل الربط
+    const courses = await query('SELECT COUNT(*) as c FROM COURSES');
+    if (courses[0].c === 0) {
+      await query(`INSERT INTO COURSES (CourseName, Type) VALUES ('Orientation & Bedside', 'VR')`);
+    }
+
+    // 2. إنشاء جدول المتدربين (TRAINEES)
     await query(`
       CREATE TABLE IF NOT EXISTS TRAINEES (
         TraineeID INT AUTO_INCREMENT PRIMARY KEY,
@@ -328,22 +339,51 @@ async function ensureTables() {
       )
     `);
 
-    // 2. جلب الأعمدة الحالية باستخدام SHOW COLUMNS المضمون والمدعوم في كل قواعد البيانات
+    // 3. إنشاء جدول الجلسات (SESSIONS)
+    await query(`
+      CREATE TABLE IF NOT EXISTS SESSIONS (
+        SessionID INT AUTO_INCREMENT PRIMARY KEY,
+        TraineeID INT,
+        CourseID INT,
+        Difficulty VARCHAR(50),
+        Date DATE,
+        StartTime TIME,
+        EndTime TIME,
+        FOREIGN KEY (TraineeID) REFERENCES TRAINEES(TraineeID) ON DELETE CASCADE,
+        FOREIGN KEY (CourseID) REFERENCES COURSES(CourseID) ON DELETE SET NULL
+      )
+    `);
+
+    // 4. إنشاء جدول التقارير (REPORTS)
+    await query(`
+      CREATE TABLE IF NOT EXISTS REPORTS (
+        ReportID INT AUTO_INCREMENT PRIMARY KEY,
+        SessionID INT,
+        TotalScore FLOAT,
+        AccuracyScore FLOAT,
+        SpeedScore FLOAT,
+        StepsCompleted INT,
+        TotalSteps INT,
+        DurationSeconds INT,
+        Comments TEXT,
+        FOREIGN KEY (SessionID) REFERENCES SESSIONS(SessionID) ON DELETE CASCADE
+      )
+    `);
+
+    // 5. فحص وإضافة الأعمدة الجديدة لجدول TRAINEES إن لم تكن موجودة
     const columns = await query('SHOW COLUMNS FROM TRAINEES');
     const columnNames = columns.map(c => c.Field || c.field);
 
-    // 3. إضافة الأعمدة الناقصة فقط إذا لم تكن موجودة بالفعل لتفادي التكرار وانهيار السيرفر
     if (!columnNames.includes('PriorSimulationExperience')) {
       await query(`ALTER TABLE TRAINEES ADD COLUMN PriorSimulationExperience VARCHAR(255)`);
-      console.log("تم إضافة عمود PriorSimulationExperience بنجاح.");
+      console.log("تم إضافة عمود PriorSimulationExperience.");
     }
-
     if (!columnNames.includes('UnityUnrealExperience')) {
       await query(`ALTER TABLE TRAINEES ADD COLUMN UnityUnrealExperience VARCHAR(255)`);
-      console.log("تم إضافة عمود UnityUnrealExperience بنجاح.");
+      console.log("تم إضافة عمود UnityUnrealExperience.");
     }
 
-    console.log("تم تحديث وجاهزية هيكلية الجداول بنجاح.");
+    console.log("تم تحديث وجاهزية هيكلية الجداول بالكامل بنجاح.");
   } catch (err) {
     console.error("خطأ في تحديث الجداول:", err);
   }
