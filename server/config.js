@@ -1,16 +1,17 @@
 import 'dotenv/config';
 
 export const config = {
-  port: process.env.PORT || 3306,
+  port: process.env.PORT || 10000, // السيرفر يجب أن يعمل على منفذ 10000 في Render
   jwt: {
-    /** Required in production; dev fallback only for local testing */
     secret: process.env.JWT_SECRET || 'dev-only-change-in-production',
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+    expiresIn: '7d',
   },
+  // سنعتمد كلياً على المتغيرات التي أدخلتها في إعدادات Render
   mysql: {
-    host: process.env.MYSQL_HOST || '193.203.184.246',
-    user: process.env.MYSQL_USER || 'u864760987_surgical',
-    password: process.env.MYSQL_PASSWORD || 'Surgical_training1',
-    database: process.env.MYSQL_DATABASE || 'u864760987_surgical',
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    port: process.env.DB_PORT,
   },
 };
